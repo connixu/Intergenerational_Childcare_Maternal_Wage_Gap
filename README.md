@@ -1,4 +1,4 @@
-#  [Intergenerational Childcare and Maternal Wage Gap] 💼
+#  Intergenerational Childcare and Maternal Wage Gap 💼
 The models within this project examines the relationship between availability of informal intergenerational childcare and levels of differential wage outcomes for working mothers.
 
 ## Deliverables
