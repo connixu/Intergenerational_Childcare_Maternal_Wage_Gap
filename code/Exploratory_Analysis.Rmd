@@ -1,0 +1,263 @@
+---
+title: "Initial_Models"
+author: "Connie Xu"
+date: "Fall 2021"
+output:
+  pdf_document: 
+    keep_tex: yes
+---
+
+## Initial Results
+First, I will be looking into the differential wage over time, in comparison to factors such as Marital Status, Number of Biological Children, and the availability of informal and formal childcare systems. These findings are meant to mimic the findings of Budig and England [1] and serve as a **very basic** starting point for testing my hypotheses. Note that current results were adapted from work completed in Time Series Labs using the data that I downloaded, cleaned, and processed. 
+
+```{r load libraries, echo=FALSE, message=FALSE, warning=FALSE}
+library(plm)
+library(dplyr)
+library(plyr)
+library(QMSS)
+library(tidyverse)
+library(stargazer)
+library(psych)
+library(ggplot2)
+library(ggthemes) 
+library(viridis)
+library(hrbrthemes)
+library(imputeTS)
+library(kableExtra)
+library(naniar)
+```
+
+
+Currently, my selected dataset is the **NLSY97**. The following are some relevant columns in the data set (as I am still trying to figure out how to use them). 
+
+*Let me know if there are better datasets out there that I can still work with.* 
+
+## Data Columns - Values 
+| ColName          | Description                           | Values                    |
+|------------------|---------------------------------------|---------------------------|
+| PUBID_1997       | Unique Identifier                     | 1-8000+                   |
+| P2.012_000002    | Race (Detailed)                       | Refer to Codebook         |
+| YINC.1400        | Any Income Earned this year? (Binary) | 0-1                       |
+| YINC.1700        | Income (Continuous)                   | 0-999999+                 |
+| KEY_BDATE_</br>Y_1997 | Birthday                              | 1990 - 1984               |
+| CV_HGC_</br>EVER_EDT  | Highest Degree Attained               | 1-20, 95 = NA             |
+| YCCAL-1100A.</br> 01~000001| Partner Care - partner looks after your child/children | 0-1 Variable  |
+| YCCAL-1100A.</br> 01~000002| Relative Care - another relative looks after your child/children | 0-1 Variable  | 
+|YCCAL-1100A.</br> 02~000007| Child Care Center - your child attends a regular pre-school, Headstart, Montessori, day-care center, or other pre-kindergarten program | 0-1 Variable  |
+| CV_BIO_</br>CHILD_HH | Number of Biological Children  in Household            | 0-5           |
+| CV_BIO_</br>CHILD_NR | Number of Biological Children  Outside of the House    | 0-5           |
+| MAR_STATUS.</br>12_XRND | Are you married as of December     | 0.0 - Never Married Not Cohabitating, </br> 1.0 - Never Married Cohabiting, </br> 2.0 - Married, </br>  3.0 - Legally Separated, </br> 4.0 - Divorced, </br> 5.0 - Widowed |
+  
+```{r load data and preprocess, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
+# Load Data - Pre-cleaned 
+NLSY <- read.csv('~/QMSS/Panic_At_The_Discode/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_Reshaped_new.csv')
+
+# Step 1. Filter for Women Only  
+NLSY <- NLSY %>% subset(KEY_SEX_1997 == 2)
+# Step 2. Filling for 'Missing' Data 
+
+NLSY_imputed <- NLSY %>% 
+  ## 2a. YINC 1400 asks whether the individual generated income at all; thus I am making another variable that imputes the continuous variable YINC 1700 with 0 where 1400 is 0.  
+  dplyr::mutate(INCOME = ifelse((is.na(YINC.1700) & (YINC.1400 == 0)), 0, YINC.1700)) %>%
+  # 2b. For number of children in the household, I will fill items with nan in the middle (by person across time); as most nan meant 'does not apply (i.e., no children) I changed this variable to 0.
+  dplyr::arrange(PUBID_1997,year) %>% 
+  dplyr::group_by(PUBID_1997) %>% 
+  tidyr::fill(PUBID_1997, year,CV_BIO_CHILD_HH,.direction = 'down') %>% 
+  dplyr::mutate(N_CHILDREN = ifelse(is.na(CV_BIO_CHILD_HH),0,CV_BIO_CHILD_HH)) %>% 
+  ungroup() %>% 
+  # 2c. For individuals with children, some answered whether intergenerational childcare is the most prevelant way that their children are cared for; I will be replacing this variable NA to 0. Same for formal and spousal care. 
+  dplyr::mutate(INTERGENERATION_CHILDCARE =
+           ifelse(is.na(`YCCAL.1100A.01.000002`),0,`YCCAL.1100A.01.000002`)) %>% 
+  dplyr::mutate(SPOUSAL_CHILDCARE =  
+           ifelse(is.na(`YCCAL.1100A.01.000001`),0,`YCCAL.1100A.01.000001`)) %>% 
+  dplyr::mutate(CHILDCARE_CENTER = 
+           ifelse(is.na(`YCCAL.1100A.02.000007`),0,`YCCAL.1100A.02.000007`)) %>% 
+  dplyr::mutate(MARRIED_OR_COHABITATING = 
+           ifelse(MAR_STATUS.12_XRND == 2 | MAR_STATUS.12_XRND == 1, 1, 0))
+
+# Step 3. Now I select the relevant columns and filter for individuals with valid data about their education. 
+NLSY_Valid <- NLSY_imputed %>% 
+  dplyr::select(PUBID_1997,year,MARRIED_OR_COHABITATING,INCOME,N_CHILDREN,CV_HH_UNDER_6,INTERGENERATION_CHILDCARE,SPOUSAL_CHILDCARE,CHILDCARE_CENTER,CV_HGC_EVER_EDT) %>% filter(CV_HGC_EVER_EDT != 95) 
+
+# Step 4. For potential later interpretation in this lab I am also going to filter only for individuals with HS level of education and above. 
+NLSY_HS <- NLSY_Valid %>% filter(CV_HGC_EVER_EDT >= 12) 
+```
+
+```{r missing data visualization}
+
+# missing_INTERGENERATION_CHILDCARE <- NLSY %>% dplyr::select(PUBID_1997,year,`YCCAL.1100A.01.000002`,CV_BIO_CHILD_HH) %>% subset(CV_BIO_CHILD_HH>0) %>% subset(year==c("2005","2008","2011","2015")) %>% tidyr::pivot_wider(names_from = year,values_from = `YCCAL.1100A.01.000002`)
+# naniar::vis_miss(missing_INTERGENERATION_CHILDCARE)
+
+valid_years <- list("2005","2008","2011","2015")
+
+for(i in valid_years){
+print(
+  NLSY_imputed %>% dplyr::select(PUBID_1997,year,`YCCAL.1100A.01.000002`,CV_BIO_CHILD_HH,CV_HH_UNDER_6) %>% subset(year==i) %>% subset(CV_HH_UNDER_6>0)
+  %>% tidyr::pivot_wider(names_from = year,values_from =`YCCAL.1100A.01.000002`) %>% 
+  vis_miss()
+)
+}
+
+for(i in valid_years){
+print(
+  NLSY_imputed %>% dplyr::select(PUBID_1997,year,`YCCAL.1100A.01.000002`,CV_BIO_CHILD_HH) %>% subset(year==i) %>% subset(CV_BIO_CHILD_HH>0)
+  %>% replace(is.na(.), 'NaN') %>% dplyr::group_by(`YCCAL.1100A.01.000002`) %>% dplyr::mutate(intergenerational_childcare = n()) %>% ungroup() %>% dplyr::group_by(`YCCAL.1100A.01.000002`,intergenerational_childcare) %>% dplyr::summarize()
+  
+  # %>% 
+  # ggplot(aes(x =`YCCAL.1100A.01.000002`, y=intergenerational_childcare)) +
+  #   geom_bar()
+)
+}
+
+?scale_fill_discrete()
+NLSY %>% dplyr::select(PUBID_1997,year,`YCCAL.1100A.01.000002`,CV_BIO_CHILD_HH) %>% subset(year==c("2005","2008","2011","2015")) %>% subset(CV_BIO_CHILD_HH>0)%>% replace(is.na(.), 'NaN') %>% dplyr::mutate(intergenerational_childcare = ifelse(YCCAL.1100A.01.000002==0, 'No',ifelse(YCCAL.1100A.01.000002==1,'Yes','NaN'))) %>% dplyr::group_by(year,intergenerational_childcare) %>% dplyr::mutate(intergenerational_childcare_proportion = n()) %>% ungroup() %>% dplyr::group_by(year,intergenerational_childcare, intergenerational_childcare_proportion) %>% dplyr::summarize() %>% 
+  ggplot(aes(x = year, y = intergenerational_childcare_proportion)) +
+  geom_bar(stat="identity",aes(fill = intergenerational_childcare)) +
+  theme_ipsum(base_size = 12, axis_title_size = 14) +
+  scale_fill_manual(values=c("#56B4E9", "#E69F00", "#999999")) + 
+    theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+        labs(title = , color = 'Response') +    
+    labs(fill = "Intergenerational Childcare?", y="Count", x = "")
+  
+
+NLSY %>% dplyr::select(PUBID_1997,year,`YCCAL.1100A.01.000002`,CV_HH_UNDER_6) %>% subset(year==c("2005","2008","2011","2015")) %>% subset(CV_HH_UNDER_6>0) %>% replace(is.na(.), 'NaN') %>% dplyr::mutate(intergenerational_childcare = ifelse(YCCAL.1100A.01.000002==0, 'No',ifelse(YCCAL.1100A.01.000002==1,'Yes','NaN'))) %>% dplyr::group_by(year,intergenerational_childcare) %>% dplyr::mutate(intergenerational_childcare_proportion = n()) %>% ungroup() %>% dplyr::group_by(year,intergenerational_childcare, intergenerational_childcare_proportion) %>% dplyr::summarize() %>% 
+  ggplot(aes(x = year, y = intergenerational_childcare_proportion)) +
+  geom_bar(stat="identity",aes(fill = intergenerational_childcare)) +
+  theme_ipsum(base_size = 12, axis_title_size = 14) +
+  scale_fill_manual(values=c("#56B4E9", "#E69F00", "#999999")) + 
+    theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+        labs(title = , color = 'Response') +    
+    labs(fill = "Intergenerational Childcare?", y="Count", x = "")
+# ggplot(missing_INTERGENERATION_CHILDCARE,
+#        aes(x = Ozone,
+#            y = Solar.R)) +
+#  geom_miss_point()
+# 
+# NLSY %>% dplyr::select(PUBID_1997,year,`YCCAL.1100A.01.000002`) %>% tidyr::pivot_longer(cols = c(PUBID_1997,year,`YCCAL.1100A.01.000002`), names_to = c(PUBID_1997,year,`YCCAL.1100A.01.000002`))
+```
+
+These are some summary statistics that I have identified thus far with panel data. As we can see, when I filter for years in which the individual(s) have children and / or valid income data (I imputed some missing values as well) our range is from 1998 - 2017 (nearly 20 years in range). 
+
+**Table 1**
+```{r Table 1, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, font.size=6 }
+dt <- describe(NLSY_Valid)
+knitr::kable(dt, format="latex")
+```
+As shown below, it is clear that there are differences between income trajectories over time for women with children and women without (on average). 
+
+**Figure 1: Mean Income Over Time** 
+```{r Figure 1, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+NSLY_Valid_Summarized <- NLSY_Valid %>% dplyr::mutate(ANY_CHILDREN = ifelse(N_CHILDREN == 0,0,1)) %>% group_by(year,ANY_CHILDREN) %>% dplyr::summarize(mean_income = mean(INCOME,na.rm=TRUE)) %>% mutate(ANY_CHILDREN = ifelse(ANY_CHILDREN==0,'No Children', 'One or More Children'))
+
+ggplot(NSLY_Valid_Summarized,aes(x=year, y=mean_income)) +
+  geom_line(aes(color = ANY_CHILDREN, linetype = ANY_CHILDREN)) + 
+  scale_color_manual(values = c("navy", "steelblue")) +
+  theme_ipsum(base_size = 12, axis_title_size = 14, base_family = 'Helvetica') +
+    theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) 
+```
+## Basic Models 
+```{r Models, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+NLSY_Valid$YEAR <- NLSY_Valid$year-1998 # For later interpretation
+NLSY_Valid$ANY_CHILDREN <- ifelse(NLSY_Valid$N_CHILDREN == 0,0,1) 
+NLSY_Valid$HIGHER_ED <- ifelse(NLSY_Valid$CV_HGC_EVER_EDT < 12, 0, NLSY_HS$CV_HGC_EVER_EDT-12) # Set high school as minimum level of education 
+
+# Models 
+OLS_Avg <- lm(INCOME ~ N_CHILDREN  + year, NLSY_Valid)
+OLS <- lm(INCOME ~ N_CHILDREN  + year, NLSY_Valid)
+FD1  <- plm(INCOME ~ N_CHILDREN + year, 
+               index = c("PUBID_1997", "year"), 
+               model = "fd", 
+               data = NLSY_Valid) 
+FE1  <- plm(INCOME ~ N_CHILDREN + year, # model formula
+               index = c("PUBID_1997", "year"), # id & time variables
+               model = "within", 
+               data = NLSY_Valid) ## this is equivalent to above OLS ##
+
+stargazer(OLS, FD1, FE1,
+          title="Regression Results", 
+          align=TRUE, 
+          dep.var.labels=c("Income"), 
+          covariate.labels=c("Children","1999"),  
+          no.space=TRUE, 
+          column.labels=c("Pooled", "First Diff", "Fixed Effects"), 
+          dep.var.caption="", 
+          model.numbers=FALSE,
+          type = "latex", omit = "Constant")
+
+```
+  
+*Note: The 'Year' coefficients correspond to distance from the base year (1998).* 
+
+This is a simple OLS, looking at the time based values, Marital Status, and number of biological children. The results show that the respondents appear to increase between approx. \$900 and \$4K  per year with no other items in the model. Additionally, each additional child  corresponds with $4K.3 less income per year for these respondents (on average across the sampled population)
+
+The independent variable (N_CHILDREN) is very statistically significant (P values are far below threshold of 0.05); thus we are able to reject the null hypothesis (i.e., that the predictor or independent variable doesn't have a significant relationship with the dependent variable).
+
+Also note that the R-Squared is 0.34, which indicates an approximate 34% explained variance by our coefficients (time and number of children) - I think this makes sense because a lot of income is a function simply of time at work / accumulation of human capital (see Figure 1 above).
+
+This is obviously a very basic model, as we don't control for basic aspects of human capital such as education level (but we will so in better models later in this lab). 
+
+### First Differences
+Here, we are able to see that the influence of number of children that individuals have continues to be important; here we are only building model with non unique observations (54466-4316). Note that first difference uses panel data to control for individual heterogeneity. 
+
+The results are consistent with existing literature and with previous findings in the pooled OLS model. For each additional child that a woman has, annual income decreases by $1.7K on average (for the same person across the 9 years of data net of year/wave of survey). We can also see that **statistical significance of the model doesn't appear to change** as p-value continues to be very small (well below 0.05) allowing us to reject the null that there is no relationship. Note also however the very **low R-Squared** in this model, showing that using first differences, the variable of number of children only explains 3% of variance in our dependent variable. 
+
+
+When using the fixed effects model, our findings are consistent once more with the previous models. For each additional child that women have from before (i.e., change in number of children), income decreases by $4K on average, net of difference across individual persons across 1998-2017 panels. This finding is **statistically significant, with a p-value well below 0.05** at 2.22e-16; further, this model, which looks at *within* transformations using individual 'demeaned effects' (i.e., we are comparing effects from the individual's mean rather than comparing between waves of data), appears once more to be more explanatory (i.e., **adjusted r-squared of 0.29**) relative to the first difference model. Based on these methods, the degree of variation and overall nature of the dependent variable would differ between First Differencing and Fixed Effects, which would naturally impact the **proportion of explained variance** 
+
+## Initial Models (with Control Variables)
+This time, I wanted to control for other human capital factors, such as Education Level and Marital Status. *I tried to interpret with an interaction term - please correct if the interaction portion is inaccurate. If you want to look at the simpler model without interactions, please refer to my third model.*  
+
+
+```{r fixed effects 2, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE, column.sep.width = "1pt",comment=NA,font.size=8}
+FE2  <- plm(INCOME ~ CV_HGC_EVER_EDT + N_CHILDREN + 
+              MARRIED_OR_COHABITATING*N_CHILDREN + 
+              as.factor(year), # model formula
+               index = c("PUBID_1997", "year"), # id & time variables
+               model = "within", 
+               data = NLSY_Valid) ## this is equivalent to above OLS ##
+FE3  <- plm(INCOME ~ CV_HGC_EVER_EDT + N_CHILDREN + MARRIED_OR_COHABITATING +
+              as.factor(year), # model formula
+               index = c("PUBID_1997", "year"), # id & time variables
+               model = "within", 
+               data = NLSY_Valid) ## this is equivalent to above OLS ##
+stargazer(FE2,FE3,
+          title="Regression Results - With Control Variables", 
+          align=TRUE, 
+          dep.var.labels=c("Income"), 
+          covariate.labels=c("Children","1999"),  
+          no.space=TRUE, 
+          column.labels=c("Fixed Effects: Interaction Terms","Fixed Effects: No Interaction Terms"), 
+          dep.var.caption="", 
+          model.numbers=FALSE,
+          type = "latex", omit = "Constant")
+```
+
+### Fixed Effects: Interaction Terms
+Once more, the results are once more consistent with existing literature. It seems that for each change (addition) in number of children that a woman has (without changing marital status), income decreases by $2K on average, net of difference across individual persons across 1998-2017 panels; net of changes in education levels. This decrease appears to be exacerbated on average for individuals who are married/cohabitating: women who both become married/cohabitating and have additional children experience annual income decrease of \$1.3K additionally on average, even as changing from unmarried to married/cohabitating (with no change in number of children) appears to correspond on average to additional \$4.4K increase in income - all of this net of individual person across 1998-2017 panels and net of changes in education level.   
+
+Additionally, it may appear that the addition of the education variable has created interpretability difficulties in the model, as youths in the NLSY earlier waves would be continuing school likely at the same rate as the 'year' (though this is not guranteed). However, it appears that each additional year of education corresponds to increase of $2.1K of income net of time and marriage / child factors.  
+
+All of these coefficients have exhibited very high t-value and p-values; the whole model also exhibits **a high f statistic and p-value well below 0.05** at 2.22e-16. Finally it should be noted that this model has the **highest r squared yet at 0.32 adjusted r-squared**, indicating that the added variables seem to be explaining more variance to this model. 
+
+### Fixed Effects: No Interaction Terms
+
+Overall, the results are once more consistent with existing literature. For each change in number of children that women have, (without changing marital status), income decreases by $3.2K on average, net of difference across individual persons across 1998-2017 panels and net of changes in education and marital status.   
+
+Meanwhile, changing from unmarried to married corresponds with income increase by $3.3K on average, net of difference across individual persons across 1998-2017 panels and net of changes in education and number of children.   
+
+As discussed above, the addition of the education variable has created interpretability difficulties in the model, as youths in the NLSY earlier waves would be continuing school likely at the same rate as the 'year' (though this is not guranteed). However, it appears that each additional year of education corresponds to increase of $2.1K of income net of time and marriage / child factors.  
+
+All of these coefficients have exhibited very high t-value and p-values; the whole model also exhibits **a high f statistic and p-value well below 0.05** at 2.22e-16. Finally it should be noted that this model has the **highest r squared yet at 0.32 adjusted r-squared**, indicating that the added variables seem to be explaining more variance to this model. 
+
+Play around with using pooled regressions (?)
+---
+[1]Budig, M. J., & England, P. (2001). The Wage Penalty for Motherhood. American Sociological Review, 66(2), 204–225. https://doi.org/10.2307/2657415
