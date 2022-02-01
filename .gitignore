@@ -44,3 +44,42 @@ Example Theses/Miller-Vasquez, Rhiannon.pdf
 Example Theses/Jarcho_Simon.pdf
 Example Theses/DeLuca, Damien.PDF
 Example Theses/Alexandra Plassaras.pdf
+*.do
+*.cdb
+*.dat
+*.dct
+*.sas
+*.sps
+data/NLSY79_categorical.csv
+data/NLSY79_continuous.csv
+data/NLSY_Reshaped.csv
+data/NLSY_Reshaped_new.csv
+*.NLSY97
+data/1997_childcare_extension/1997_childcare_extension.csv
+data/1997_childcare_extension/1997_childcare_extension.R
+data/1997_childcare_extension/extract.log
+data/1997_educational_attainment/Educational_Attainment.csv
+data/1997_educational_attainment/Educational_Attainment.R
+data/1997_educational_attainment/Educational_Attainment.sdf
+data/1997_educational_attainment/extract.log
+data/1997_married_children/extract.log
+data/1997_married_children/Married_Children.csv
+data/1997_married_children/Married_Children.R
+data/1997_married_children/Married_Children.sdf
+data/1997_NLSY_base_data/extract.log
+data/1997_NLSY_base_data/NLSY_Base_Data.csv
+data/1997_NLSY_base_data/NLSY_Base_Data.R
+data/1997_NLSY_base_data/NLSY_Base_Data.sdf
+data/1997_under_6/extract.log
+data/1997_under_6/under_6.csv
+data/1997_under_6/under_6.R
+data/enrollment/enrollment.csv
+data/enrollment/enrollment.R
+data/enrollment/extract.log
+data/NLSY79.csv
+data/NLSY79/extract.log
+data/NLSY79/NLSY79.csv
+data/1997_childcare/ChildcareNLSY.csv
+data/1997_childcare/extract.log
+data/NLSY79/NLSY79.NLSY79
+data/NLSY79/.DS_Store
