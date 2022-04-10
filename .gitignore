@@ -1,116 +1,106 @@
 
-paperwork/yx2625-degree-app-signed.pdf
-paperwork/yx2625-degree-app-signed-digital.pdf
-paperwork/QMSS Thesis Work Plan Agreement Fillable Form.pdf
-literature/Zagorsky 2016.pdf
-literature/Yu and Xie (2018) .pdf
-literature/wcms_371804.pdf
-literature/Villanuevaa et al. (2016).pdf
-literature/Torzewska and Matysiak (2020).pdf
-literature/sehsd-wp2021-14.pdf
-literature/SEHSD-WP2017-43.pdf
-literature/SEHSD-WP2011-01.pdf
-literature/Schwank et al. (2015) .pdf
-literature/Pettit and Hook 2005.pdf
-literature/Pessin 2020.pdf
-literature/Paik (2007).pdf
-literature/oei-03-15-00170.pdf
-literature/Murdock (2007) .pdf
-literature/Motherhood Penalty Draft - Google Docs.pdf
-literature/Maurier-Fazio (1999) .pdf
-literature/Mari and Cutuli (2020).pdf
-literature/Lin and Fu 1990.pdf
-literature/Kulkarni (2015).pdf
-literature/Ji et al.(2017).pdf
-literature/Grimshaw and Rubery (2015).pdf
-literature/Greenman (2011).pdf
-literature/Gough and Noonan (2013).pdf
-literature/Gabadinho et al (2011).pdf
-literature/Florian (2018).pdf
-literature/Dong and An (2015).pdf
-literature/Datta Gupta et al. 2008.pdf
-literature/Correll and Bernard (2010) .pdf
-literature/Childcare_Indonesia.pdf
-literature/Cha (2010).pdf
-literature/BudigMisraBoeckmann2012.pdf
-literature/Budig (2016).pdf
-literature/Budig (2001).pdf
-literature/Blau and Kahn (2017).pdf
-literature/Bear & Glick (2017).pdf
-literature/Aguero et al..pdf
-literature/2657461.pdf
-literature/.DS_Store
-Example Theses/Miller-Vasquez, Rhiannon.pdf
-Example Theses/Jarcho_Simon.pdf
-Example Theses/DeLuca, Damien.PDF
-Example Theses/Alexandra Plassaras.pdf
-*.do
+*.NLSY97
 *.cdb
 *.dat
 *.dct
+*.do
+*.html
+*.log
 *.sas
 *.sps
-data/NLSY79_categorical.csv
-data/NLSY79_continuous.csv
-data/NLSY_Reshaped.csv
-data/NLSY_Reshaped_new.csv
-*.NLSY97
-data/1997_childcare_extension/1997_childcare_extension.csv
-data/1997_childcare_extension/1997_childcare_extension.R
-data/1997_childcare_extension/extract.log
-data/1997_educational_attainment/Educational_Attainment.csv
-data/1997_educational_attainment/Educational_Attainment.R
-data/1997_educational_attainment/Educational_Attainment.sdf
-data/1997_educational_attainment/extract.log
-data/1997_married_children/extract.log
-data/1997_married_children/Married_Children.csv
-data/1997_married_children/Married_Children.R
-data/1997_married_children/Married_Children.sdf
-data/1997_NLSY_base_data/extract.log
+.Rproj.user
+Example Theses/Alexandra Plassaras.pdf
+Example Theses/DeLuca, Damien.PDF
+Example Theses/Jarcho_Simon.pdf
+Example Theses/Miller-Vasquez, Rhiannon.pdf
+NLSY79_categorical.csv
+NLSY79_continuous.csv
 data/1997_NLSY_base_data/NLSY_Base_Data.csv
-data/1997_NLSY_base_data/NLSY_Base_Data.R
 data/1997_NLSY_base_data/NLSY_Base_Data.sdf
-data/1997_under_6/extract.log
-data/1997_under_6/under_6.csv
-data/1997_under_6/under_6.R
-data/enrollment/enrollment.csv
-data/enrollment/enrollment.R
-data/enrollment/extract.log
-data/NLSY79.csv
-data/NLSY79/extract.log
-data/NLSY79/NLSY79.csv
+data/1997_NLSY_base_data/extract.log
 data/1997_childcare/ChildcareNLSY.csv
 data/1997_childcare/extract.log
-data/NLSY79/NLSY79.NLSY79
+data/1997_childcare_extension/1997_childcare_extension.R
+data/1997_childcare_extension/1997_childcare_extension.csv
+data/1997_childcare_extension/extract.log
+data/1997_educational_attainment/Educational_Attainment.R
+data/1997_educational_attainment/Educational_Attainment.csv
+data/1997_educational_attainment/Educational_Attainment.sdf
+data/1997_educational_attainment/extract.log
+data/1997_married_children/Married_Children.R
+data/1997_married_children/Married_Children.csv
+data/1997_married_children/Married_Children.sdf
+data/1997_married_children/extract.log
+data/1997_under_6/extract.log
+data/1997_under_6/under_6.csv
+data/NLSY79.csv
 data/NLSY79/.DS_Store
-*.log
+data/NLSY79/NLSY79.NLSY79
+data/NLSY79/NLSY79.csv
 data/NLSY79/NLSY79_categorical.csv
 data/NLSY79/NLSY79_continuous.csv
+data/NLSY79/extract.log
+data/NLSY79_categorical.csv
+data/NLSY79_continuous.csv
 data/NLSY97/.DS_Store
+data/NLSY97/1997_NLSY_base_data/NLSY_Base_Data.csv
+data/NLSY97/1997_NLSY_base_data/NLSY_Base_Data.sdf
 data/NLSY97/1997_childcare/ChildcareNLSY.csv
 data/NLSY97/1997_childcare_extension/1997_childcare_extension.csv
-data/NLSY97/1997_childcare_extension/1997_childcare_extension.R
 data/NLSY97/1997_educational_attainment/Educational_Attainment.csv
-data/NLSY97/1997_educational_attainment/Educational_Attainment.R
 data/NLSY97/1997_educational_attainment/Educational_Attainment.sdf
 data/NLSY97/1997_enrollment/enrollment.csv
-data/NLSY97/1997_enrollment/enrollment.R
+data/NLSY97/1997_family_income/family_income.csv
 data/NLSY97/1997_married_children/Married_Children.csv
-data/NLSY97/1997_married_children/Married_Children.R
 data/NLSY97/1997_married_children/Married_Children.sdf
-data/NLSY97/1997_NLSY_base_data/NLSY_Base_Data.csv
-data/NLSY97/1997_NLSY_base_data/NLSY_Base_Data.R
-data/NLSY97/1997_NLSY_base_data/NLSY_Base_Data.sdf
 data/NLSY97/1997_under_6/under_6.csv
-data/NLSY97/1997_under_6/under_6.R
+data/NLSY97/1997_work_or_school/work_or_school.csv
 data/NLSY97/NLSY_Reshaped.csv
 data/NLSY97/NLSY_Reshaped_new.csv
-.Rproj.user
-*.html
+data/NLSY_Reshaped.csv
+data/NLSY_Reshaped_new.RData
+data/NLSY_Reshaped_new.csv
 data/NLSY_new_shortened.RData
-data/NLSY_Reshaped_new.RData
-data/NLSY97/1997_work_or_school/work_or_school.csv
-data/NLSY_Reshaped_new.RData
-data/NLSY97/1997_family_income/family_income.csv
-NLSY79_continuous.csv
-NLSY79_categorical.csv
+data/enrollment/enrollment.csv
+data/enrollment/extract.log
+literature/.DS_Store
+literature/2657461.pdf
+literature/Aguero et al..pdf
+literature/Bear & Glick (2017).pdf
+literature/Blau and Kahn (2017).pdf
+literature/Budig (2001).pdf
+literature/Budig (2016).pdf
+literature/BudigMisraBoeckmann2012.pdf
+literature/Cha (2010).pdf
+literature/Childcare_Indonesia.pdf
+literature/Correll and Bernard (2010) .pdf
+literature/Datta Gupta et al. 2008.pdf
+literature/Dong and An (2015).pdf
+literature/Florian (2018).pdf
+literature/Gabadinho et al (2011).pdf
+literature/Gough and Noonan (2013).pdf
+literature/Greenman (2011).pdf
+literature/Grimshaw and Rubery (2015).pdf
+literature/Ji et al.(2017).pdf
+literature/Kulkarni (2015).pdf
+literature/Lin and Fu 1990.pdf
+literature/Mari and Cutuli (2020).pdf
+literature/Maurier-Fazio (1999) .pdf
+literature/Motherhood Penalty Draft - Google Docs.pdf
+literature/Murdock (2007) .pdf
+literature/Paik (2007).pdf
+literature/Pessin 2020.pdf
+literature/Pettit and Hook 2005.pdf
+literature/SEHSD-WP2011-01.pdf
+literature/SEHSD-WP2017-43.pdf
+literature/Schwank et al. (2015) .pdf
+literature/Torzewska and Matysiak (2020).pdf
+literature/Villanuevaa et al. (2016).pdf
+literature/Yu and Xie (2018) .pdf
+literature/Zagorsky 2016.pdf
+literature/oei-03-15-00170.pdf
+literature/sehsd-wp2021-14.pdf
+literature/wcms_371804.pdf
+paperwork/QMSS Thesis Work Plan Agreement Fillable Form.pdf
+paperwork/yx2625-degree-app-signed-digital.pdf
+paperwork/yx2625-degree-app-signed.pdf
