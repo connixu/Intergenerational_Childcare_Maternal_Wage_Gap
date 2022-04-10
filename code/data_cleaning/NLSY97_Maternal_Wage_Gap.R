@@ -1,6 +1,6 @@
 # nlsy base data
 
-nlsy_base_data <- read.table('/Users/ConnieXu/QMSS/Panic_At_The_Discode/Intergenerational_Childcare_Maternal_Wage_Gap/data/1997_NLSY_base_data/NLSY_Base_Data.dat', sep=' ')
+nlsy_base_data <- read.table('/Users/ConnieXu/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY97/1997_NLSY_base_data/NLSY_Base_Data.dat', sep=' ')
 names(nlsy_base_data) <- c('R0000100',
   'R0489900',
   'R0490200',
@@ -1934,7 +1934,7 @@ summary(nlsy_base_data_cat)
 # childcare}
 # Set working directory
 # setwd()
-childcare_nlsy <- read.table('/Users/ConnieXu/QMSS/Panic_At_The_Discode/Intergenerational_Childcare_Maternal_Wage_Gap/data/1997_childcare/ChildcareNLSY.dat', sep=' ')
+childcare_nlsy <- read.table('/Users/ConnieXu/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY97/1997_childcare/ChildcareNLSY.dat', sep=' ')
 names(childcare_nlsy) <- c('R0000100',
                            'R0536300',
                            'R0536401',
@@ -3338,7 +3338,7 @@ print(summary(childcare_nlsy_cat))
 
 # childcare_more}
 
-childcare_extension <- read.table('~/QMSS/Panic_At_The_Discode/Intergenerational_Childcare_Maternal_Wage_Gap/data/1997_childcare_extension/1997_childcare_extension.dat', sep=' ')
+childcare_extension <- read.table('~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY97/1997_childcare_extension/1997_childcare_extension.dat', sep=' ')
 names(childcare_extension) <- c('R0000100',
   'R0536300',
   'R0536401',
@@ -4870,7 +4870,7 @@ summary(categories)
 # Set working directory
 # setwd()
 
-married_children <- read.table('~/QMSS/Panic_At_The_Discode/Intergenerational_Childcare_Maternal_Wage_Gap/data/1997_married_children/Married_Children.dat', sep=' ')
+married_children <- read.table('~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY97/1997_married_children/Married_Children.dat', sep=' ')
 names(married_children) <- c('E7011401',
                              'E7011402',
                              'E7011403',
@@ -8817,6 +8817,805 @@ summary(married_children_cat)
 #************************************************************************************************************
 
 
+work_or_school <- read.table('~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY97/1997_work_or_school/work_or_school.dat', sep=' ')
+names(work_or_school) <- c('R0000100',
+                           'R0536300',
+                           'R0536401',
+                           'R0536402',
+                           'R1235800',
+                           'R1482600',
+                           'R6737600',
+                           'S1048400',
+                           'S3127600',
+                           'S4795900',
+                           'S6457500',
+                           'S6460800',
+                           'S6489000',
+                           'S6489100',
+                           'S6489200',
+                           'S8492600',
+                           'T0885900',
+                           'T2954800',
+                           'T2958100',
+                           'T2988600',
+                           'T2988700',
+                           'T2988800',
+                           'T4402100',
+                           'T6051600',
+                           'T7503200',
+                           'T7507300',
+                           'T7534200',
+                           'T7534300',
+                           'T7534400',
+                           'T8972000',
+                           'U0911900',
+                           'U0915900',
+                           'U0944400',
+                           'U0944500',
+                           'U0944600',
+                           'U2856000',
+                           'U4281400')
+
+
+# Handle missing values
+
+work_or_school[work_or_school == -1] = NA  # Refused 
+work_or_school[work_or_school == -2] = NA  # Dont know 
+work_or_school[work_or_school == -3] = NA  # Invalid missing 
+work_or_school[work_or_school == -4] = NA  # Valid missing 
+work_or_school[work_or_school == -5] = NA  # Non-interview 
+
+
+# If there are values not categorized they will be represented as NA
+
+vallabels = function(data) {
+  data$R0000100[1.0 <= data$R0000100 & data$R0000100 <= 999.0] <- 1.0
+  data$R0000100[1000.0 <= data$R0000100 & data$R0000100 <= 1999.0] <- 1000.0
+  data$R0000100[2000.0 <= data$R0000100 & data$R0000100 <= 2999.0] <- 2000.0
+  data$R0000100[3000.0 <= data$R0000100 & data$R0000100 <= 3999.0] <- 3000.0
+  data$R0000100[4000.0 <= data$R0000100 & data$R0000100 <= 4999.0] <- 4000.0
+  data$R0000100[5000.0 <= data$R0000100 & data$R0000100 <= 5999.0] <- 5000.0
+  data$R0000100[6000.0 <= data$R0000100 & data$R0000100 <= 6999.0] <- 6000.0
+  data$R0000100[7000.0 <= data$R0000100 & data$R0000100 <= 7999.0] <- 7000.0
+  data$R0000100[8000.0 <= data$R0000100 & data$R0000100 <= 8999.0] <- 8000.0
+  data$R0000100[9000.0 <= data$R0000100 & data$R0000100 <= 9999.0] <- 9000.0
+  data$R0000100 <- factor(data$R0000100, 
+                          levels=c(0.0,1.0,1000.0,2000.0,3000.0,4000.0,5000.0,6000.0,7000.0,8000.0,9000.0), 
+                          labels=c("0",
+                                   "1 TO 999",
+                                   "1000 TO 1999",
+                                   "2000 TO 2999",
+                                   "3000 TO 3999",
+                                   "4000 TO 4999",
+                                   "5000 TO 5999",
+                                   "6000 TO 6999",
+                                   "7000 TO 7999",
+                                   "8000 TO 8999",
+                                   "9000 TO 9999"))
+  data$R0536300 <- factor(data$R0536300, 
+                          levels=c(0.0,1.0,2.0), 
+                          labels=c("No Information",
+                                   "Male",
+                                   "Female"))
+  data$R0536401 <- factor(data$R0536401, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0), 
+                          labels=c("1: January",
+                                   "2: February",
+                                   "3: March",
+                                   "4: April",
+                                   "5: May",
+                                   "6: June",
+                                   "7: July",
+                                   "8: August",
+                                   "9: September",
+                                   "10: October",
+                                   "11: November",
+                                   "12: December"))
+  data$R1235800 <- factor(data$R1235800, 
+                          levels=c(0.0,1.0), 
+                          labels=c("Oversample",
+                                   "Cross-sectional"))
+  data$R1482600 <- factor(data$R1482600, 
+                          levels=c(1.0,2.0,3.0,4.0), 
+                          labels=c("Black",
+                                   "Hispanic",
+                                   "Mixed Race (Non-Hispanic)",
+                                   "Non-Black / Non-Hispanic"))
+  data$R6689100[1.0 <= data$R6689100 & data$R6689100 <= 4.0] <- 1.0
+  data$R6689100[5.0 <= data$R6689100 & data$R6689100 <= 8.0] <- 5.0
+  data$R6689100[9.0 <= data$R6689100 & data$R6689100 <= 14.0] <- 9.0
+  data$R6689100[15.0 <= data$R6689100 & data$R6689100 <= 19.0] <- 15.0
+  data$R6689100[20.0 <= data$R6689100 & data$R6689100 <= 24.0] <- 20.0
+  data$R6689100[25.0 <= data$R6689100 & data$R6689100 <= 29.0] <- 25.0
+  data$R6689100[30.0 <= data$R6689100 & data$R6689100 <= 34.0] <- 30.0
+  data$R6689100[35.0 <= data$R6689100 & data$R6689100 <= 39.0] <- 35.0
+  data$R6689100[40.0 <= data$R6689100 & data$R6689100 <= 44.0] <- 40.0
+  data$R6689100[45.0 <= data$R6689100 & data$R6689100 <= 49.0] <- 45.0
+  data$R6689100[50.0 <= data$R6689100 & data$R6689100 <= 9.9999999E7] <- 50.0
+  data$R6689100 <- factor(data$R6689100, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$R6737600 <- factor(data$R6737600, 
+                          levels=c(0.0,1.0), 
+                          labels=c("NO",
+                                   "YES"))
+  data$S1048400[1.0 <= data$S1048400 & data$S1048400 <= 4.0] <- 1.0
+  data$S1048400[5.0 <= data$S1048400 & data$S1048400 <= 8.0] <- 5.0
+  data$S1048400[9.0 <= data$S1048400 & data$S1048400 <= 14.0] <- 9.0
+  data$S1048400[15.0 <= data$S1048400 & data$S1048400 <= 19.0] <- 15.0
+  data$S1048400[20.0 <= data$S1048400 & data$S1048400 <= 24.0] <- 20.0
+  data$S1048400[25.0 <= data$S1048400 & data$S1048400 <= 29.0] <- 25.0
+  data$S1048400[30.0 <= data$S1048400 & data$S1048400 <= 34.0] <- 30.0
+  data$S1048400[35.0 <= data$S1048400 & data$S1048400 <= 39.0] <- 35.0
+  data$S1048400[40.0 <= data$S1048400 & data$S1048400 <= 44.0] <- 40.0
+  data$S1048400[45.0 <= data$S1048400 & data$S1048400 <= 49.0] <- 45.0
+  data$S1048400[50.0 <= data$S1048400 & data$S1048400 <= 9.9999999E7] <- 50.0
+  data$S1048400 <- factor(data$S1048400, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$S3127600[1.0 <= data$S3127600 & data$S3127600 <= 4.0] <- 1.0
+  data$S3127600[5.0 <= data$S3127600 & data$S3127600 <= 8.0] <- 5.0
+  data$S3127600[9.0 <= data$S3127600 & data$S3127600 <= 14.0] <- 9.0
+  data$S3127600[15.0 <= data$S3127600 & data$S3127600 <= 19.0] <- 15.0
+  data$S3127600[20.0 <= data$S3127600 & data$S3127600 <= 24.0] <- 20.0
+  data$S3127600[25.0 <= data$S3127600 & data$S3127600 <= 29.0] <- 25.0
+  data$S3127600[30.0 <= data$S3127600 & data$S3127600 <= 34.0] <- 30.0
+  data$S3127600[35.0 <= data$S3127600 & data$S3127600 <= 39.0] <- 35.0
+  data$S3127600[40.0 <= data$S3127600 & data$S3127600 <= 44.0] <- 40.0
+  data$S3127600[45.0 <= data$S3127600 & data$S3127600 <= 49.0] <- 45.0
+  data$S3127600[50.0 <= data$S3127600 & data$S3127600 <= 9.9999999E7] <- 50.0
+  data$S3127600 <- factor(data$S3127600, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$S4795900[1.0 <= data$S4795900 & data$S4795900 <= 4.0] <- 1.0
+  data$S4795900[5.0 <= data$S4795900 & data$S4795900 <= 8.0] <- 5.0
+  data$S4795900[9.0 <= data$S4795900 & data$S4795900 <= 14.0] <- 9.0
+  data$S4795900[15.0 <= data$S4795900 & data$S4795900 <= 19.0] <- 15.0
+  data$S4795900[20.0 <= data$S4795900 & data$S4795900 <= 24.0] <- 20.0
+  data$S4795900[25.0 <= data$S4795900 & data$S4795900 <= 29.0] <- 25.0
+  data$S4795900[30.0 <= data$S4795900 & data$S4795900 <= 34.0] <- 30.0
+  data$S4795900[35.0 <= data$S4795900 & data$S4795900 <= 39.0] <- 35.0
+  data$S4795900[40.0 <= data$S4795900 & data$S4795900 <= 44.0] <- 40.0
+  data$S4795900[45.0 <= data$S4795900 & data$S4795900 <= 49.0] <- 45.0
+  data$S4795900[50.0 <= data$S4795900 & data$S4795900 <= 9.9999999E7] <- 50.0
+  data$S4795900 <- factor(data$S4795900, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$S6457500[1.0 <= data$S6457500 & data$S6457500 <= 4.0] <- 1.0
+  data$S6457500[5.0 <= data$S6457500 & data$S6457500 <= 8.0] <- 5.0
+  data$S6457500[9.0 <= data$S6457500 & data$S6457500 <= 14.0] <- 9.0
+  data$S6457500[15.0 <= data$S6457500 & data$S6457500 <= 19.0] <- 15.0
+  data$S6457500[20.0 <= data$S6457500 & data$S6457500 <= 24.0] <- 20.0
+  data$S6457500[25.0 <= data$S6457500 & data$S6457500 <= 29.0] <- 25.0
+  data$S6457500[30.0 <= data$S6457500 & data$S6457500 <= 34.0] <- 30.0
+  data$S6457500[35.0 <= data$S6457500 & data$S6457500 <= 39.0] <- 35.0
+  data$S6457500[40.0 <= data$S6457500 & data$S6457500 <= 44.0] <- 40.0
+  data$S6457500[45.0 <= data$S6457500 & data$S6457500 <= 49.0] <- 45.0
+  data$S6457500[50.0 <= data$S6457500 & data$S6457500 <= 9.9999999E7] <- 50.0
+  data$S6457500 <- factor(data$S6457500, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$S6460800[1.0 <= data$S6460800 & data$S6460800 <= 4.0] <- 1.0
+  data$S6460800[5.0 <= data$S6460800 & data$S6460800 <= 8.0] <- 5.0
+  data$S6460800[9.0 <= data$S6460800 & data$S6460800 <= 14.0] <- 9.0
+  data$S6460800[15.0 <= data$S6460800 & data$S6460800 <= 19.0] <- 15.0
+  data$S6460800[20.0 <= data$S6460800 & data$S6460800 <= 24.0] <- 20.0
+  data$S6460800[25.0 <= data$S6460800 & data$S6460800 <= 29.0] <- 25.0
+  data$S6460800[30.0 <= data$S6460800 & data$S6460800 <= 34.0] <- 30.0
+  data$S6460800[35.0 <= data$S6460800 & data$S6460800 <= 39.0] <- 35.0
+  data$S6460800[40.0 <= data$S6460800 & data$S6460800 <= 44.0] <- 40.0
+  data$S6460800[45.0 <= data$S6460800 & data$S6460800 <= 49.0] <- 45.0
+  data$S6460800[50.0 <= data$S6460800 & data$S6460800 <= 9.9999999E7] <- 50.0
+  data$S6460800 <- factor(data$S6460800, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$S6489000 <- factor(data$S6489000, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,999.0), 
+                          labels=c("Respondent",
+                                   "Child's father",
+                                   "Equal split between R and child's father",
+                                   "Respondent's spouse, partner (who is NOT child's father)",
+                                   "This relative",
+                                   "Other (SPECIFY)",
+                                   "UNCODABLE"))
+  data$S6489100 <- factor(data$S6489100, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,999.0), 
+                          labels=c("Respondent",
+                                   "Child's father",
+                                   "Equal split between R and child's father",
+                                   "Respondent's spouse, partner (who is NOT child's father)",
+                                   "This relative",
+                                   "Other (SPECIFY)",
+                                   "UNCODABLE"))
+  data$S6489200 <- factor(data$S6489200, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,999.0), 
+                          labels=c("Respondent",
+                                   "Child's father",
+                                   "Equal split between R and child's father",
+                                   "Respondent's spouse, partner (who is NOT child's father)",
+                                   "This relative",
+                                   "Other (SPECIFY)",
+                                   "UNCODABLE"))
+  data$S8492600[1.0 <= data$S8492600 & data$S8492600 <= 4.0] <- 1.0
+  data$S8492600[5.0 <= data$S8492600 & data$S8492600 <= 8.0] <- 5.0
+  data$S8492600[9.0 <= data$S8492600 & data$S8492600 <= 14.0] <- 9.0
+  data$S8492600[15.0 <= data$S8492600 & data$S8492600 <= 19.0] <- 15.0
+  data$S8492600[20.0 <= data$S8492600 & data$S8492600 <= 24.0] <- 20.0
+  data$S8492600[25.0 <= data$S8492600 & data$S8492600 <= 29.0] <- 25.0
+  data$S8492600[30.0 <= data$S8492600 & data$S8492600 <= 34.0] <- 30.0
+  data$S8492600[35.0 <= data$S8492600 & data$S8492600 <= 39.0] <- 35.0
+  data$S8492600[40.0 <= data$S8492600 & data$S8492600 <= 44.0] <- 40.0
+  data$S8492600[45.0 <= data$S8492600 & data$S8492600 <= 49.0] <- 45.0
+  data$S8492600[50.0 <= data$S8492600 & data$S8492600 <= 9.9999999E7] <- 50.0
+  data$S8492600 <- factor(data$S8492600, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$T0885900[1.0 <= data$T0885900 & data$T0885900 <= 4.0] <- 1.0
+  data$T0885900[5.0 <= data$T0885900 & data$T0885900 <= 8.0] <- 5.0
+  data$T0885900[9.0 <= data$T0885900 & data$T0885900 <= 14.0] <- 9.0
+  data$T0885900[15.0 <= data$T0885900 & data$T0885900 <= 19.0] <- 15.0
+  data$T0885900[20.0 <= data$T0885900 & data$T0885900 <= 24.0] <- 20.0
+  data$T0885900[25.0 <= data$T0885900 & data$T0885900 <= 29.0] <- 25.0
+  data$T0885900[30.0 <= data$T0885900 & data$T0885900 <= 34.0] <- 30.0
+  data$T0885900[35.0 <= data$T0885900 & data$T0885900 <= 39.0] <- 35.0
+  data$T0885900[40.0 <= data$T0885900 & data$T0885900 <= 44.0] <- 40.0
+  data$T0885900[45.0 <= data$T0885900 & data$T0885900 <= 49.0] <- 45.0
+  data$T0885900[50.0 <= data$T0885900 & data$T0885900 <= 9.9999999E7] <- 50.0
+  data$T0885900 <- factor(data$T0885900, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$T2954800[1.0 <= data$T2954800 & data$T2954800 <= 4.0] <- 1.0
+  data$T2954800[5.0 <= data$T2954800 & data$T2954800 <= 8.0] <- 5.0
+  data$T2954800[9.0 <= data$T2954800 & data$T2954800 <= 14.0] <- 9.0
+  data$T2954800[15.0 <= data$T2954800 & data$T2954800 <= 19.0] <- 15.0
+  data$T2954800[20.0 <= data$T2954800 & data$T2954800 <= 24.0] <- 20.0
+  data$T2954800[25.0 <= data$T2954800 & data$T2954800 <= 29.0] <- 25.0
+  data$T2954800[30.0 <= data$T2954800 & data$T2954800 <= 34.0] <- 30.0
+  data$T2954800[35.0 <= data$T2954800 & data$T2954800 <= 39.0] <- 35.0
+  data$T2954800[40.0 <= data$T2954800 & data$T2954800 <= 44.0] <- 40.0
+  data$T2954800[45.0 <= data$T2954800 & data$T2954800 <= 49.0] <- 45.0
+  data$T2954800[50.0 <= data$T2954800 & data$T2954800 <= 9.9999999E7] <- 50.0
+  data$T2954800 <- factor(data$T2954800, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$T2958100[1.0 <= data$T2958100 & data$T2958100 <= 4.0] <- 1.0
+  data$T2958100[5.0 <= data$T2958100 & data$T2958100 <= 8.0] <- 5.0
+  data$T2958100[9.0 <= data$T2958100 & data$T2958100 <= 14.0] <- 9.0
+  data$T2958100[15.0 <= data$T2958100 & data$T2958100 <= 19.0] <- 15.0
+  data$T2958100[20.0 <= data$T2958100 & data$T2958100 <= 24.0] <- 20.0
+  data$T2958100[25.0 <= data$T2958100 & data$T2958100 <= 29.0] <- 25.0
+  data$T2958100[30.0 <= data$T2958100 & data$T2958100 <= 34.0] <- 30.0
+  data$T2958100[35.0 <= data$T2958100 & data$T2958100 <= 39.0] <- 35.0
+  data$T2958100[40.0 <= data$T2958100 & data$T2958100 <= 44.0] <- 40.0
+  data$T2958100[45.0 <= data$T2958100 & data$T2958100 <= 49.0] <- 45.0
+  data$T2958100[50.0 <= data$T2958100 & data$T2958100 <= 9.9999999E7] <- 50.0
+  data$T2958100 <- factor(data$T2958100, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$T2988600 <- factor(data$T2988600, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,999.0), 
+                          labels=c("Respondent",
+                                   "Child's father",
+                                   "Equal split between R and child's father",
+                                   "Respondent's spouse, partner (who is NOT child's father)",
+                                   "This relative",
+                                   "Other (SPECIFY)",
+                                   "UNCODABLE"))
+  data$T2988700 <- factor(data$T2988700, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,999.0), 
+                          labels=c("Respondent",
+                                   "Child's father",
+                                   "Equal split between R and child's father",
+                                   "Respondent's spouse, partner (who is NOT child's father)",
+                                   "This relative",
+                                   "Other (SPECIFY)",
+                                   "UNCODABLE"))
+  data$T2988800 <- factor(data$T2988800, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,999.0), 
+                          labels=c("Respondent",
+                                   "Child's father",
+                                   "Equal split between R and child's father",
+                                   "Respondent's spouse, partner (who is NOT child's father)",
+                                   "This relative",
+                                   "Other (SPECIFY)",
+                                   "UNCODABLE"))
+  data$T4402100[1.0 <= data$T4402100 & data$T4402100 <= 4.0] <- 1.0
+  data$T4402100[5.0 <= data$T4402100 & data$T4402100 <= 8.0] <- 5.0
+  data$T4402100[9.0 <= data$T4402100 & data$T4402100 <= 14.0] <- 9.0
+  data$T4402100[15.0 <= data$T4402100 & data$T4402100 <= 19.0] <- 15.0
+  data$T4402100[20.0 <= data$T4402100 & data$T4402100 <= 24.0] <- 20.0
+  data$T4402100[25.0 <= data$T4402100 & data$T4402100 <= 29.0] <- 25.0
+  data$T4402100[30.0 <= data$T4402100 & data$T4402100 <= 34.0] <- 30.0
+  data$T4402100[35.0 <= data$T4402100 & data$T4402100 <= 39.0] <- 35.0
+  data$T4402100[40.0 <= data$T4402100 & data$T4402100 <= 44.0] <- 40.0
+  data$T4402100[45.0 <= data$T4402100 & data$T4402100 <= 49.0] <- 45.0
+  data$T4402100[50.0 <= data$T4402100 & data$T4402100 <= 9.9999999E7] <- 50.0
+  data$T4402100 <- factor(data$T4402100, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$T6051600[1.0 <= data$T6051600 & data$T6051600 <= 4.0] <- 1.0
+  data$T6051600[5.0 <= data$T6051600 & data$T6051600 <= 8.0] <- 5.0
+  data$T6051600[9.0 <= data$T6051600 & data$T6051600 <= 14.0] <- 9.0
+  data$T6051600[15.0 <= data$T6051600 & data$T6051600 <= 19.0] <- 15.0
+  data$T6051600[20.0 <= data$T6051600 & data$T6051600 <= 24.0] <- 20.0
+  data$T6051600[25.0 <= data$T6051600 & data$T6051600 <= 29.0] <- 25.0
+  data$T6051600[30.0 <= data$T6051600 & data$T6051600 <= 34.0] <- 30.0
+  data$T6051600[35.0 <= data$T6051600 & data$T6051600 <= 39.0] <- 35.0
+  data$T6051600[40.0 <= data$T6051600 & data$T6051600 <= 44.0] <- 40.0
+  data$T6051600[45.0 <= data$T6051600 & data$T6051600 <= 49.0] <- 45.0
+  data$T6051600[50.0 <= data$T6051600 & data$T6051600 <= 9.9999999E7] <- 50.0
+  data$T6051600 <- factor(data$T6051600, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$T7503200[1.0 <= data$T7503200 & data$T7503200 <= 4.0] <- 1.0
+  data$T7503200[5.0 <= data$T7503200 & data$T7503200 <= 8.0] <- 5.0
+  data$T7503200[9.0 <= data$T7503200 & data$T7503200 <= 14.0] <- 9.0
+  data$T7503200[15.0 <= data$T7503200 & data$T7503200 <= 19.0] <- 15.0
+  data$T7503200[20.0 <= data$T7503200 & data$T7503200 <= 24.0] <- 20.0
+  data$T7503200[25.0 <= data$T7503200 & data$T7503200 <= 29.0] <- 25.0
+  data$T7503200[30.0 <= data$T7503200 & data$T7503200 <= 34.0] <- 30.0
+  data$T7503200[35.0 <= data$T7503200 & data$T7503200 <= 39.0] <- 35.0
+  data$T7503200[40.0 <= data$T7503200 & data$T7503200 <= 44.0] <- 40.0
+  data$T7503200[45.0 <= data$T7503200 & data$T7503200 <= 49.0] <- 45.0
+  data$T7503200[50.0 <= data$T7503200 & data$T7503200 <= 9.9999999E7] <- 50.0
+  data$T7503200 <- factor(data$T7503200, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$T7507300[1.0 <= data$T7507300 & data$T7507300 <= 4.0] <- 1.0
+  data$T7507300[5.0 <= data$T7507300 & data$T7507300 <= 8.0] <- 5.0
+  data$T7507300[9.0 <= data$T7507300 & data$T7507300 <= 14.0] <- 9.0
+  data$T7507300[15.0 <= data$T7507300 & data$T7507300 <= 19.0] <- 15.0
+  data$T7507300[20.0 <= data$T7507300 & data$T7507300 <= 24.0] <- 20.0
+  data$T7507300[25.0 <= data$T7507300 & data$T7507300 <= 29.0] <- 25.0
+  data$T7507300[30.0 <= data$T7507300 & data$T7507300 <= 34.0] <- 30.0
+  data$T7507300[35.0 <= data$T7507300 & data$T7507300 <= 39.0] <- 35.0
+  data$T7507300[40.0 <= data$T7507300 & data$T7507300 <= 44.0] <- 40.0
+  data$T7507300[45.0 <= data$T7507300 & data$T7507300 <= 49.0] <- 45.0
+  data$T7507300[50.0 <= data$T7507300 & data$T7507300 <= 9.9999999E7] <- 50.0
+  data$T7507300 <- factor(data$T7507300, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$T7534200 <- factor(data$T7534200, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,999.0), 
+                          labels=c("Respondent",
+                                   "Child's father",
+                                   "Equal split between R and child's father",
+                                   "Respondent's spouse, partner (who is NOT child's father)",
+                                   "This relative",
+                                   "Other (SPECIFY)",
+                                   "UNCODABLE"))
+  data$T7534300 <- factor(data$T7534300, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,999.0), 
+                          labels=c("Respondent",
+                                   "Child's father",
+                                   "Equal split between R and child's father",
+                                   "Respondent's spouse, partner (who is NOT child's father)",
+                                   "This relative",
+                                   "Other (SPECIFY)",
+                                   "UNCODABLE"))
+  data$T7534400 <- factor(data$T7534400, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,999.0), 
+                          labels=c("Respondent",
+                                   "Child's father",
+                                   "Equal split between R and child's father",
+                                   "Respondent's spouse, partner (who is NOT child's father)",
+                                   "This relative",
+                                   "Other (SPECIFY)",
+                                   "UNCODABLE"))
+  data$T8972000[1.0 <= data$T8972000 & data$T8972000 <= 4.0] <- 1.0
+  data$T8972000[5.0 <= data$T8972000 & data$T8972000 <= 8.0] <- 5.0
+  data$T8972000[9.0 <= data$T8972000 & data$T8972000 <= 14.0] <- 9.0
+  data$T8972000[15.0 <= data$T8972000 & data$T8972000 <= 19.0] <- 15.0
+  data$T8972000[20.0 <= data$T8972000 & data$T8972000 <= 24.0] <- 20.0
+  data$T8972000[25.0 <= data$T8972000 & data$T8972000 <= 29.0] <- 25.0
+  data$T8972000[30.0 <= data$T8972000 & data$T8972000 <= 34.0] <- 30.0
+  data$T8972000[35.0 <= data$T8972000 & data$T8972000 <= 39.0] <- 35.0
+  data$T8972000[40.0 <= data$T8972000 & data$T8972000 <= 44.0] <- 40.0
+  data$T8972000[45.0 <= data$T8972000 & data$T8972000 <= 49.0] <- 45.0
+  data$T8972000[50.0 <= data$T8972000 & data$T8972000 <= 9.9999999E7] <- 50.0
+  data$T8972000 <- factor(data$T8972000, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$U0911900[1.0 <= data$U0911900 & data$U0911900 <= 4.0] <- 1.0
+  data$U0911900[5.0 <= data$U0911900 & data$U0911900 <= 8.0] <- 5.0
+  data$U0911900[9.0 <= data$U0911900 & data$U0911900 <= 14.0] <- 9.0
+  data$U0911900[15.0 <= data$U0911900 & data$U0911900 <= 19.0] <- 15.0
+  data$U0911900[20.0 <= data$U0911900 & data$U0911900 <= 24.0] <- 20.0
+  data$U0911900[25.0 <= data$U0911900 & data$U0911900 <= 29.0] <- 25.0
+  data$U0911900[30.0 <= data$U0911900 & data$U0911900 <= 34.0] <- 30.0
+  data$U0911900[35.0 <= data$U0911900 & data$U0911900 <= 39.0] <- 35.0
+  data$U0911900[40.0 <= data$U0911900 & data$U0911900 <= 44.0] <- 40.0
+  data$U0911900[45.0 <= data$U0911900 & data$U0911900 <= 49.0] <- 45.0
+  data$U0911900[50.0 <= data$U0911900 & data$U0911900 <= 9.9999999E7] <- 50.0
+  data$U0911900 <- factor(data$U0911900, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$U0915900[1.0 <= data$U0915900 & data$U0915900 <= 4.0] <- 1.0
+  data$U0915900[5.0 <= data$U0915900 & data$U0915900 <= 8.0] <- 5.0
+  data$U0915900[9.0 <= data$U0915900 & data$U0915900 <= 14.0] <- 9.0
+  data$U0915900[15.0 <= data$U0915900 & data$U0915900 <= 19.0] <- 15.0
+  data$U0915900[20.0 <= data$U0915900 & data$U0915900 <= 24.0] <- 20.0
+  data$U0915900[25.0 <= data$U0915900 & data$U0915900 <= 29.0] <- 25.0
+  data$U0915900[30.0 <= data$U0915900 & data$U0915900 <= 34.0] <- 30.0
+  data$U0915900[35.0 <= data$U0915900 & data$U0915900 <= 39.0] <- 35.0
+  data$U0915900[40.0 <= data$U0915900 & data$U0915900 <= 44.0] <- 40.0
+  data$U0915900[45.0 <= data$U0915900 & data$U0915900 <= 49.0] <- 45.0
+  data$U0915900[50.0 <= data$U0915900 & data$U0915900 <= 9.9999999E7] <- 50.0
+  data$U0915900 <- factor(data$U0915900, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$U0944400 <- factor(data$U0944400, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,999.0), 
+                          labels=c("Respondent",
+                                   "Child's father",
+                                   "Equal split between R and child's father",
+                                   "Respondent's spouse, partner (who is NOT child's father)",
+                                   "This relative",
+                                   "Other (SPECIFY)",
+                                   "UNCODABLE"))
+  data$U0944500 <- factor(data$U0944500, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,999.0), 
+                          labels=c("Respondent",
+                                   "Child's father",
+                                   "Equal split between R and child's father",
+                                   "Respondent's spouse, partner (who is NOT child's father)",
+                                   "This relative",
+                                   "Other (SPECIFY)",
+                                   "UNCODABLE"))
+  data$U0944600 <- factor(data$U0944600, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,999.0), 
+                          labels=c("Respondent",
+                                   "Child's father",
+                                   "Equal split between R and child's father",
+                                   "Respondent's spouse, partner (who is NOT child's father)",
+                                   "This relative",
+                                   "Other (SPECIFY)",
+                                   "UNCODABLE"))
+  data$U2856000[1.0 <= data$U2856000 & data$U2856000 <= 4.0] <- 1.0
+  data$U2856000[5.0 <= data$U2856000 & data$U2856000 <= 8.0] <- 5.0
+  data$U2856000[9.0 <= data$U2856000 & data$U2856000 <= 14.0] <- 9.0
+  data$U2856000[15.0 <= data$U2856000 & data$U2856000 <= 19.0] <- 15.0
+  data$U2856000[20.0 <= data$U2856000 & data$U2856000 <= 24.0] <- 20.0
+  data$U2856000[25.0 <= data$U2856000 & data$U2856000 <= 29.0] <- 25.0
+  data$U2856000[30.0 <= data$U2856000 & data$U2856000 <= 34.0] <- 30.0
+  data$U2856000[35.0 <= data$U2856000 & data$U2856000 <= 39.0] <- 35.0
+  data$U2856000[40.0 <= data$U2856000 & data$U2856000 <= 44.0] <- 40.0
+  data$U2856000[45.0 <= data$U2856000 & data$U2856000 <= 49.0] <- 45.0
+  data$U2856000[50.0 <= data$U2856000 & data$U2856000 <= 9.9999999E7] <- 50.0
+  data$U2856000 <- factor(data$U2856000, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  data$U4281400[1.0 <= data$U4281400 & data$U4281400 <= 4.0] <- 1.0
+  data$U4281400[5.0 <= data$U4281400 & data$U4281400 <= 8.0] <- 5.0
+  data$U4281400[9.0 <= data$U4281400 & data$U4281400 <= 14.0] <- 9.0
+  data$U4281400[15.0 <= data$U4281400 & data$U4281400 <= 19.0] <- 15.0
+  data$U4281400[20.0 <= data$U4281400 & data$U4281400 <= 24.0] <- 20.0
+  data$U4281400[25.0 <= data$U4281400 & data$U4281400 <= 29.0] <- 25.0
+  data$U4281400[30.0 <= data$U4281400 & data$U4281400 <= 34.0] <- 30.0
+  data$U4281400[35.0 <= data$U4281400 & data$U4281400 <= 39.0] <- 35.0
+  data$U4281400[40.0 <= data$U4281400 & data$U4281400 <= 44.0] <- 40.0
+  data$U4281400[45.0 <= data$U4281400 & data$U4281400 <= 49.0] <- 45.0
+  data$U4281400[50.0 <= data$U4281400 & data$U4281400 <= 9.9999999E7] <- 50.0
+  data$U4281400 <- factor(data$U4281400, 
+                          levels=c(0.0,1.0,5.0,9.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0), 
+                          labels=c("0",
+                                   "1 TO 4",
+                                   "5 TO 8",
+                                   "9 TO 14",
+                                   "15 TO 19",
+                                   "20 TO 24",
+                                   "25 TO 29",
+                                   "30 TO 34",
+                                   "35 TO 39",
+                                   "40 TO 44",
+                                   "45 TO 49",
+                                   "50 TO 99999999: 50+"))
+  return(data)
+}
+
+varlabels <- c("PUBID - YTH ID CODE 1997",
+               "KEY!SEX (SYMBOL) 1997",
+               "KEY!BDATE M/Y (SYMBOL) 1997",
+               "KEY!BDATE M/Y (SYMBOL) 1997",
+               "CV_SAMPLE_TYPE 1997",
+               "KEY!RACE_ETHNICITY (SYMBOL) 1997",
+               "AVG HRS WORK PER WK (CCA) 2001",
+               "ANY RELATIVES W/IN 15 MINS 2001",
+               "AVG HRS WORK PER WK (CCA) 2002",
+               "AVG HRS WORK PER WK (CCA) 2003",
+               "AVG HRS WORK PER WK (CCA) 2004",
+               "AVG HRS WORK PER WK (CCA) 2005",
+               "AVG HRS WORK PER WK (CCA) 2005",
+               "WHO TAKE CHILD TO/FROM FAM DC L1,6 2005",
+               "WHO TAKE CHILD TO/FROM FAM DC L2,6 2005",
+               "WHO TAKE CHILD TO/FROM FAM DC L3,6 2005",
+               "AVG HRS WORK PER WK (CCA) 2006",
+               "AVG HRS WORK PER WK (CCA) 2007",
+               "AVG HRS WORK PER WK (CCA) 2008",
+               "AVG HRS WORK PER WK (CCA) 2008",
+               "WHO TAKE CHILD TO/FROM FAM DC L1,6 2008",
+               "WHO TAKE CHILD TO/FROM FAM DC L2,6 2008",
+               "WHO TAKE CHILD TO/FROM FAM DC L3,6 2008",
+               "AVG HRS WORK PER WK (CCA) 2009",
+               "AVG HRS WORK PER WK (CCA) 2010",
+               "AVG HRS WORK PER WK (CCA) 2011",
+               "AVG HRS WORK PER WK (CCA) 2011",
+               "WHO TAKE CHILD TO/FROM FAM DC L1,5 2011",
+               "WHO TAKE CHILD TO/FROM FAM DC L2,5 2011",
+               "WHO TAKE CHILD TO/FROM FAM DC L3,5 2011",
+               "AVG HRS WORK PER WK (CCA) 2013",
+               "AVG HRS WORK PER WK (CCA) 2015",
+               "AVG HRS WORK PER WK (CCA) 2015",
+               "WHO TAKE CHILD TO/FROM FAM DC L1,5 2015",
+               "WHO TAKE CHILD TO/FROM FAM DC L2,5 2015",
+               "WHO TAKE CHILD TO/FROM FAM DC L3,5 2015",
+               "AVG HRS WORK PER WK (CCA) 2017",
+               "AVG HRS WORK PER WK (CCA) 2019"
+)
+
+
+# Use qnames rather than rnums
+
+qnames = function(data) {
+  names(data) <- c("PUBID_1997",
+                   "KEY_SEX_1997",
+                   "KEY_BDATE_M_1997",
+                   "KEY_BDATE_Y_1997",
+                   "CV_SAMPLE_TYPE_1997",
+                   "KEY_RACE_ETHNICITY_1997",
+                   "YCCA-450_2001",
+                   "YCCA-6800_2001",
+                   "YCCA-450_2002",
+                   "YCCA-450_2003",
+                   "YCCA-450_2004",
+                   "YCCA-450_2005",
+                   "YCCAL-450_2005",
+                   "YCCAL-4500.01.06_2005",
+                   "YCCAL-4500.02.06_2005",
+                   "YCCAL-4500.03.06_2005",
+                   "YCCA-450_2006",
+                   "YCCA-450_2007",
+                   "YCCA-450_2008",
+                   "YCCAL-450_2008",
+                   "YCCAL-4500.01.06_2008",
+                   "YCCAL-4500.02.06_2008",
+                   "YCCAL-4500.03.06_2008",
+                   "YCCA-450_2009",
+                   "YCCA-450_2010",
+                   "YCCA-450_2011",
+                   "YCCAL-450_2011",
+                   "YCCAL-4500.01.05_2011",
+                   "YCCAL-4500.02.05_2011",
+                   "YCCAL-4500.03.05_2011",
+                   "YCCA-450_2013",
+                   "YCCA-450_2015",
+                   "YCCAL-450_2015",
+                   "YCCAL-4500.01.05_2015",
+                   "YCCAL-4500.02.05_2015",
+                   "YCCAL-4500.03.05_2015",
+                   "YCCA-450_2017",
+                   "YCCA-450_2019")
+  return(data)
+}
+
+
+#********************************************************************************************************
+
+# Remove the '#' before the following line to create a data file called "categories" with value labels. 
+categories <- vallabels(work_or_school)
+
+# Remove the '#' before the following lines to rename variables using Qnames instead of Reference Numbers
+work_or_school <- qnames(work_or_school)
+categories <- qnames(categories)
+
+# Produce summaries for the raw (uncategorized) data file
+summary(work_or_school)
+
+# Remove the '#' before the following lines to produce summaries for the "categories" data file.
+#categories <- vallabels(work_or_school)
+#summary(categories)
+
+#************************************************************************************************************
+
+
 # educational_attainment}
 
 
@@ -8824,7 +9623,7 @@ summary(married_children_cat)
 # setwd()
 
 
-educational_attainment <- read.table('/Users/ConnieXu/QMSS/Panic_At_The_Discode/Intergenerational_Childcare_Maternal_Wage_Gap/data/1997_educational_attainment/Educational_Attainment.dat', sep=' ')
+educational_attainment <- read.table('/Users/ConnieXu/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY97/1997_educational_attainment/Educational_Attainment.dat', sep=' ')
 names(educational_attainment) <- c('R0000100',
   'R0536300',
   'R0536401',
@@ -9433,7 +10232,7 @@ summary(educational_attainment_cat
 # setwd()
 
 
-under_6 <- read.table('~/QMSS/Panic_At_The_Discode/Intergenerational_Childcare_Maternal_Wage_Gap/data/1997_under_6/under_6.dat', sep=' ')
+under_6 <- read.table('~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY97/1997_under_6/under_6.dat', sep=' ')
 names(under_6) <- c('R0000100',
   'R0536300',
   'R0536401',
@@ -10063,11 +10862,429 @@ summary(under_6)
 #************************************************************************************************************
 
 
+enrollment <- read.table('~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY97/1997_enrollment/enrollment.dat', sep=' ')
+names(enrollment) <- c('R0000100',
+                     'R0536300',
+                     'R0536401',
+                     'R0536402',
+                     'R1201400',
+                     'R1235800',
+                     'R1482600',
+                     'R2560001',
+                     'R3881501',
+                     'R5460601',
+                     'R7224201',
+                     'S1538001',
+                     'S2007701',
+                     'S3808501',
+                     'S5408900',
+                     'S7509700',
+                     'T0013000',
+                     'T2015900',
+                     'T3606200',
+                     'T5206600',
+                     'T6656400',
+                     'T8128800',
+                     'U0008700',
+                     'U1845300',
+                     'U3443800')
+
+
+# Handle missing values
+
+enrollment[enrollment == -1] = NA  # Refused 
+enrollment[enrollment == -2] = NA  # Dont know 
+enrollment[enrollment == -3] = NA  # Invalid missing 
+enrollment[enrollment == -4] = NA  # Valid missing 
+enrollment[enrollment == -5] = NA  # Non-interview 
+
+
+# If there are values not categorized they will be represented as NA
+
+vallabels = function(data) {
+  data$R0000100[1.0 <= data$R0000100 & data$R0000100 <= 999.0] <- 1.0
+  data$R0000100[1000.0 <= data$R0000100 & data$R0000100 <= 1999.0] <- 1000.0
+  data$R0000100[2000.0 <= data$R0000100 & data$R0000100 <= 2999.0] <- 2000.0
+  data$R0000100[3000.0 <= data$R0000100 & data$R0000100 <= 3999.0] <- 3000.0
+  data$R0000100[4000.0 <= data$R0000100 & data$R0000100 <= 4999.0] <- 4000.0
+  data$R0000100[5000.0 <= data$R0000100 & data$R0000100 <= 5999.0] <- 5000.0
+  data$R0000100[6000.0 <= data$R0000100 & data$R0000100 <= 6999.0] <- 6000.0
+  data$R0000100[7000.0 <= data$R0000100 & data$R0000100 <= 7999.0] <- 7000.0
+  data$R0000100[8000.0 <= data$R0000100 & data$R0000100 <= 8999.0] <- 8000.0
+  data$R0000100[9000.0 <= data$R0000100 & data$R0000100 <= 9999.0] <- 9000.0
+  data$R0000100 <- factor(data$R0000100, 
+                          levels=c(0.0,1.0,1000.0,2000.0,3000.0,4000.0,5000.0,6000.0,7000.0,8000.0,9000.0), 
+                          labels=c("0",
+                                   "1 TO 999",
+                                   "1000 TO 1999",
+                                   "2000 TO 2999",
+                                   "3000 TO 3999",
+                                   "4000 TO 4999",
+                                   "5000 TO 5999",
+                                   "6000 TO 6999",
+                                   "7000 TO 7999",
+                                   "8000 TO 8999",
+                                   "9000 TO 9999"))
+  data$R0536300 <- factor(data$R0536300, 
+                          levels=c(0.0,1.0,2.0), 
+                          labels=c("No Information",
+                                   "Male",
+                                   "Female"))
+  data$R0536401 <- factor(data$R0536401, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0), 
+                          labels=c("1: January",
+                                   "2: February",
+                                   "3: March",
+                                   "4: April",
+                                   "5: May",
+                                   "6: June",
+                                   "7: July",
+                                   "8: August",
+                                   "9: September",
+                                   "10: October",
+                                   "11: November",
+                                   "12: December"))
+  data$R1201400 <- factor(data$R1201400, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$R1235800 <- factor(data$R1235800, 
+                          levels=c(0.0,1.0), 
+                          labels=c("Oversample",
+                                   "Cross-sectional"))
+  data$R1482600 <- factor(data$R1482600, 
+                          levels=c(1.0,2.0,3.0,4.0), 
+                          labels=c("Black",
+                                   "Hispanic",
+                                   "Mixed Race (Non-Hispanic)",
+                                   "Non-Black / Non-Hispanic"))
+  data$R2560001 <- factor(data$R2560001, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$R3881501 <- factor(data$R3881501, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$R5460601 <- factor(data$R5460601, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$R7224201 <- factor(data$R7224201, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$S1538001 <- factor(data$S1538001, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$S2007701 <- factor(data$S2007701, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$S3808501 <- factor(data$S3808501, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$S5408900 <- factor(data$S5408900, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$S7509700 <- factor(data$S7509700, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$T0013000 <- factor(data$T0013000, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$T2015900 <- factor(data$T2015900, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$T3606200 <- factor(data$T3606200, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$T5206600 <- factor(data$T5206600, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$T6656400 <- factor(data$T6656400, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$T8128800 <- factor(data$T8128800, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$U0008700 <- factor(data$U0008700, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$U1845300 <- factor(data$U1845300, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  data$U3443800 <- factor(data$U3443800, 
+                          levels=c(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0), 
+                          labels=c("Not enrolled, no high school degree, no GED",
+                                   "Not enrolled, GED",
+                                   "Not enrolled, high school degree",
+                                   "Not enrolled, some college",
+                                   "Not enrolled, 2-year college graduate",
+                                   "Not enrolled, 4-year college graduate",
+                                   "Not enrolled, graduate degree",
+                                   "Enrolled in grades 1-12, not a high school graduate",
+                                   "Enrolled in a 2-year college",
+                                   "Enrolled in a 4-year college",
+                                   "Enrolled in a graduate program"))
+  return(data)
+}
+
+varlabels <- c("PUBID - YTH ID CODE 1997",
+               "KEY!SEX (SYMBOL) 1997",
+               "KEY!BDATE M/Y (SYMBOL) 1997",
+               "KEY!BDATE M/Y (SYMBOL) 1997",
+               "CV_ENROLLSTAT 1997",
+               "CV_SAMPLE_TYPE 1997",
+               "KEY!RACE_ETHNICITY (SYMBOL) 1997",
+               "CV_ENROLLSTAT_EDT 1998",
+               "CV_ENROLLSTAT_EDT 1999",
+               "CV_ENROLLSTAT_EDT 2000",
+               "CV_ENROLLSTAT_EDT 2001",
+               "CV_ENROLLSTAT_EDT 2002",
+               "CV_ENROLLSTAT_EDT 2003",
+               "CV_ENROLLSTAT_EDT 2004",
+               "CV_ENROLLSTAT 2005",
+               "CV_ENROLLSTAT 2006",
+               "CV_ENROLLSTAT 2007",
+               "CV_ENROLLSTAT 2008",
+               "CV_ENROLLSTAT 2009",
+               "CV_ENROLLSTAT 2010",
+               "CV_ENROLLSTAT 2011",
+               "CV_ENROLLSTAT 2013",
+               "CV_ENROLLSTAT 2015",
+               "CV_ENROLLSTAT 2017",
+               "CV_ENROLLSTAT 2019"
+)
+
+
+# Use qnames rather than rnums
+
+qnames = function(data) {
+  names(data) <- c("PUBID_1997",
+                   "KEY_SEX_1997",
+                   "KEY_BDATE_M_1997",
+                   "KEY_BDATE_Y_1997",
+                   "CV_ENROLLSTAT_1997",
+                   "CV_SAMPLE_TYPE_1997",
+                   "KEY_RACE_ETHNICITY_1997",
+                   "CV_ENROLLSTAT_EDT_1998",
+                   "CV_ENROLLSTAT_EDT_1999",
+                   "CV_ENROLLSTAT_EDT_2000",
+                   "CV_ENROLLSTAT_EDT_2001",
+                   "CV_ENROLLSTAT_EDT_2002",
+                   "CV_ENROLLSTAT_EDT_2003",
+                   "CV_ENROLLSTAT_EDT_2004",
+                   "CV_ENROLLSTAT_2005",
+                   "CV_ENROLLSTAT_2006",
+                   "CV_ENROLLSTAT_2007",
+                   "CV_ENROLLSTAT_2008",
+                   "CV_ENROLLSTAT_2009",
+                   "CV_ENROLLSTAT_2010",
+                   "CV_ENROLLSTAT_2011",
+                   "CV_ENROLLSTAT_2013",
+                   "CV_ENROLLSTAT_2015",
+                   "CV_ENROLLSTAT_2017",
+                   "CV_ENROLLSTAT_2019")
+  return(data)
+}
+
+
+#********************************************************************************************************
+
+# Remove the '#' before the following line to create a data file called "categories" with value labels. 
+categories <- vallabels(enrollment)
+
+# Remove the '#' before the following lines to rename variables using Qnames instead of Reference Numbers
+enrollment <- qnames(enrollment)
+categories <- qnames(categories)
+
+# Produce summaries for the raw (uncategorized) data file
+summary(enrollment)
+
+# Remove the '#' before the following lines to produce summaries for the "categories" data file.
+#categories <- vallabels(enrollment)
+#summary(categories)
+
+#************************************************************************************************************
 
 
 
-# merge df}
-# Merge dataframes 
+# Merge dataframes - different variables were downloaded at different times. 
 NLSY <- merge(childcare_nlsy, nlsy_base_data, on=c("PUBID_1997",
                                                    "KEY_SEX_1997",
                                                    "KEY_BDATE_M_1997",
@@ -10102,186 +11319,195 @@ NLSY <- merge(NLSY, under_6, on=c("PUBID_1997",
                                            "CV_SAMPLE_TYPE_1997",
                                            "KEY_RACE_ETHNICITY_1997"))
 
+NLSY <- merge(NLSY, enrollment, on=c("PUBID_1997",
+                                  "KEY_SEX_1997",
+                                  "KEY_BDATE_M_1997",
+                                  "KEY_BDATE_Y_1997",
+                                  "CV_SAMPLE_TYPE_1997",
+                                  "KEY_RACE_ETHNICITY_1997"))
+NLSY <- merge(NLSY, work_or_school, on=c("PUBID_1997",
+                                     "KEY_SEX_1997",
+                                     "KEY_BDATE_M_1997",
+                                     "KEY_BDATE_Y_1997",
+                                     "CV_SAMPLE_TYPE_1997",
+                                     "KEY_RACE_ETHNICITY_1997"))
 
-#
-library(dplyr)
-
-NLSY_1997 <- NLSY %>% select(contains('_1997'))
+# Pivots on year by selecting variables with each year suffic and appending them to one another so that we have time series shaped data rather than dat awith multiple columns by ID. 
+NLSY_1997 <- NLSY %>% dplyr::select(contains('_1997'))
 colnames(NLSY_1997)<-gsub("_1997","",colnames(NLSY_1997))
 NLSY_1997 <- NLSY_1997 %>% dplyr::rename('PUBID_1997'='PUBID') %>% dplyr::rename('KEY_SEX_1997'='KEY_SEX') %>% 
   dplyr::rename('KEY_BDATE_M_1997'='KEY_BDATE_M') %>% dplyr::rename('KEY_BDATE_Y_1997'='KEY_BDATE_Y') %>% 
-  dplyr::rename('CV_SAMPLE_TYPE_1997'='CV_SAMPLE_TYPE') %>% dplyr::rename('KEY_RACE_ETHNICITY_1997'='KEY_RACE_ETHNICITY') %>% mutate(year = '1997')
+  dplyr::rename('CV_SAMPLE_TYPE_1997'='CV_SAMPLE_TYPE') %>% dplyr::rename('KEY_RACE_ETHNICITY_1997'='KEY_RACE_ETHNICITY') %>% mutate(YEAR = '1997')
   
-NLSY_1998 <- NLSY %>% select("PUBID_1997",
+NLSY_1998 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_1998')) %>% mutate(year = '1998')
+                             "KEY_RACE_ETHNICITY_1997",contains('_1998')) %>% mutate(YEAR = '1998')
 colnames(NLSY_1998)<-gsub("_1998","",colnames(NLSY_1998)) 
 
-NLSY_1999 <- NLSY %>% select("PUBID_1997",
+NLSY_1999 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_1999')) %>% mutate(year = '1999')
+                             "KEY_RACE_ETHNICITY_1997",contains('_1999')) %>% mutate(YEAR = '1999')
 colnames(NLSY_1999)<-gsub("_1999","",colnames(NLSY_1999)) 
 
-NLSY_2000 <- NLSY %>% select("PUBID_1997",
+NLSY_2000 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2000')) %>% mutate(year = '2000')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2000')) %>% mutate(YEAR = '2000')
 colnames(NLSY_2000)<-gsub("_2000","",colnames(NLSY_2000))
 
-NLSY_2001 <- NLSY %>% select("PUBID_1997",
+NLSY_2001 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2001')) %>% mutate(year = '2001')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2001')) %>% mutate(YEAR = '2001')
 colnames(NLSY_2001)<-gsub("_2001","",colnames(NLSY_2001))
 
-NLSY_2002 <- NLSY %>% select("PUBID_1997",
+NLSY_2002 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2002')) %>% mutate(year = '2002')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2002')) %>% mutate(YEAR = '2002')
 colnames(NLSY_2002)<-gsub("_2002","",colnames(NLSY_2002)) 
 
-NLSY_2003 <- NLSY %>% select("PUBID_1997",
+NLSY_2003 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2003')) %>% mutate(year = '2003')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2003')) %>% mutate(YEAR = '2003')
 colnames(NLSY_2003)<-gsub("_2003","",colnames(NLSY_2003)) 
  
-NLSY_2004 <- NLSY %>% select("PUBID_1997",
+NLSY_2004 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2004')) %>% mutate(year = '2004')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2004')) %>% mutate(YEAR = '2004')
 colnames(NLSY_2004)<-gsub("_2004","",colnames(NLSY_2004))
 
-
-NLSY_2005 <- NLSY %>% select("PUBID_1997",
+NLSY_2005 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2005'))%>% mutate(year = '2005')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2005'))%>% mutate(YEAR = '2005')
 colnames(NLSY_2005)<-gsub("_2005","",colnames(NLSY_2005)) 
 
-NLSY_2006 <- NLSY %>% select("PUBID_1997",
+NLSY_2006 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2006'))%>% mutate(year = '2006')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2006'))%>% mutate(YEAR = '2006')
 colnames(NLSY_2006)<-gsub("_2006","",colnames(NLSY_2006)) 
 
-NLSY_2007 <- NLSY %>% select("PUBID_1997",
+NLSY_2007 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2007')) %>% mutate(year = '2007')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2007')) %>% mutate(YEAR = '2007')
 colnames(NLSY_2007)<-gsub("_2007","",colnames(NLSY_2007))
 
 
-NLSY_2008 <- NLSY %>% select("PUBID_1997",
+NLSY_2008 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2008')) %>% mutate(year = '2008')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2008')) %>% mutate(YEAR = '2008')
 colnames(NLSY_2008)<-gsub("_2008","",colnames(NLSY_2008))
 
-NLSY_2009 <- NLSY %>% select("PUBID_1997",
+NLSY_2009 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2009')) %>% mutate(year = '2009')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2009')) %>% mutate(YEAR = '2009')
 colnames(NLSY_2009)<-gsub("_2009","",colnames(NLSY_2009))
 
 
-NLSY_2010 <- NLSY %>% select("PUBID_1997",
+NLSY_2010 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2010')) %>% mutate(year = '2010')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2010')) %>% mutate(YEAR = '2010')
 colnames(NLSY_2010)<-gsub("_2010","",colnames(NLSY_2010))
 
-NLSY_2011 <- NLSY %>% select("PUBID_1997",
+NLSY_2011 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2011')) %>% mutate(year = '2011')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2011')) %>% mutate(YEAR = '2011')
 colnames(NLSY_2011)<-gsub("_2011","",colnames(NLSY_2011))
 
-NLSY_2012 <- NLSY %>% select("PUBID_1997",
+NLSY_2012 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2012')) %>% mutate(year = '2012')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2012')) %>% mutate(YEAR = '2012')
 colnames(NLSY_2012)<-gsub("_2012","",colnames(NLSY_2012))
 
-NLSY_2013 <- NLSY %>% select("PUBID_1997",
+NLSY_2013 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2013')) %>% mutate(year = '2013')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2013')) %>% mutate(YEAR = '2013')
 
 colnames(NLSY_2013)<-gsub("_2013","",colnames(NLSY_2013))
 
-NLSY_2014 <- NLSY %>% select("PUBID_1997",
+NLSY_2014 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2014')) %>% mutate(year = '2014')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2014')) %>% mutate(YEAR = '2014')
 colnames(NLSY_2014)<-gsub("_2014","",colnames(NLSY_2014))
 
-NLSY_2015 <- NLSY %>% select("PUBID_1997",
+NLSY_2015 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2015')) %>% mutate(year = '2015')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2015')) %>% mutate(YEAR = '2015')
 
 colnames(NLSY_2015)<-gsub("_2015","",colnames(NLSY_2015))
 
-NLSY_2016 <- NLSY %>% select("PUBID_1997",
+NLSY_2016 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2016')) %>% mutate(year = '2016')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2016')) %>% mutate(YEAR = '2016')
 colnames(NLSY_2016)<-gsub("_2016","",colnames(NLSY_2016))
 
-NLSY_2017 <- NLSY %>% select("PUBID_1997",
+NLSY_2017 <- NLSY %>% dplyr::select("PUBID_1997",
                              "KEY_SEX_1997",
                              "KEY_BDATE_M_1997",
                              "KEY_BDATE_Y_1997",
                              "CV_SAMPLE_TYPE_1997",
-                             "KEY_RACE_ETHNICITY_1997",contains('_2017')) %>% mutate(year = '2017')
+                             "KEY_RACE_ETHNICITY_1997",contains('_2017')) %>% mutate(YEAR = '2017')
 colnames(NLSY_2017)<-gsub("_2017","",colnames(NLSY_2017))
 NLSY_new = bind_rows(NLSY_1997,NLSY_1998,NLSY_1999,NLSY_2000,NLSY_2001,NLSY_2002,NLSY_2003,NLSY_2004,NLSY_2005,
                      NLSY_2006,NLSY_2007,NLSY_2008,NLSY_2009,NLSY_2010,NLSY_2011,NLSY_2012,NLSY_2013,NLSY_2014,
                      NLSY_2015,NLSY_2016,NLSY_2017)
 tail(NLSY_new$year)
 
-NLSY_old <- read.csv('~/QMSS/Panic_At_The_Discode/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_Reshaped.csv')
+NLSY_old <- read.csv('~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY97/NLSY_Reshaped.csv')
 head(NLSY_old)
 head(NLSY_new)
 # NLSY <- merge(NLSY_old, NLSY_new, on=c("PUBID_1997",
@@ -10290,17 +11516,22 @@ head(NLSY_new)
 #                                          "KEY_BDATE_Y_1997",
 #                                          "CV_SAMPLE_TYPE_1997",
 #                                          "KEY_RACE_ETHNICITY_1997","year"), all=TRUE)
-write.csv(NLSY_new,'~/QMSS/Panic_At_The_Discode/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_Reshaped_new.csv')
 
-save(NLSY_new, file = "~/QMSS/Panic_At_The_Discode/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_Reshaped_new.RData") 
+write.csv(NLSY_new,'~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_Reshaped_new.csv')
+
+save(NLSY_new, file = "~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_Reshaped_new.RData") 
 
 
-
-#
 a<- colnames(NLSY_old)
 b <-colnames(NLSY_new)
-
+NLSY_new
 setdiff(a, b)
 
 
+load("~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_Reshaped_new.RData")
+# NLSY_new_shortened removes questions about detailed racial origin.
+NLSY_new_shortened <- NLSY_new %>% dplyr::select(-contains("P2-012")) %>% dplyr::select(-contains("P2-048"))
+colnames(NLSY_new_shortened)
+save(NLSY_new_shortened, file = "~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_new_shortened.RData") 
 
+unique(NLSY_new_shortened$YEAR)

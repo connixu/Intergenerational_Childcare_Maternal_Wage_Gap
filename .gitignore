@@ -106,3 +106,11 @@ data/NLSY97/1997_under_6/under_6.R
 data/NLSY97/NLSY_Reshaped.csv
 data/NLSY97/NLSY_Reshaped_new.csv
 .Rproj.user
+*.html
+data/NLSY_new_shortened.RData
+data/NLSY_Reshaped_new.RData
+data/NLSY97/1997_work_or_school/work_or_school.csv
+data/NLSY_Reshaped_new.RData
+data/NLSY97/1997_family_income/family_income.csv
+NLSY79_continuous.csv
+NLSY79_categorical.csv

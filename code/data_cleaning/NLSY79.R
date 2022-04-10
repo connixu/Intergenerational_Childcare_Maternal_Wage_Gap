@@ -3,7 +3,7 @@
 # setwd()
 
 
-new_data <- read.table('~/QMSS/Panic_At_The_Discode/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY79/NLSY79.dat', sep=' ')
+new_data <- read.table('~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY79/NLSY79.dat', sep=' ')
 names(new_data) <- c('R0000100',
   'R0000700',
   'R0009600',
@@ -3390,18 +3390,18 @@ names_list <- dplyr::as_tibble(
      "MARSTAT-KEY_2018"))
 
 names_list <- names_list %>% mutate(B = substr(value, nchar(value)-4+1, nchar(value)))
-
-
+names_list
 colnames(new_data)<-gsub("SCRN","_1979", colnames(new_data))
-
+colnames(new_data)
 suffixes <-list(unique(names_list$B))[[1]]
 
-
+suffixes
 NLSY79 = data.frame()
 colnames(categories)<-gsub("SCRN","_1979", colnames(categories))
 
 for (i in 1:length(suffixes)){
   colmn = suffixes[i]
+  print(colmn)
   df <- data.frame(new_data %>% select(contains(colmn)) %>% mutate(year = colmn))
   assign(paste0("NLSY79_",colmn),data.frame(new_data %>% select(contains(colmn)) %>% mutate(year = colmn)))
   colmn_sub = substr(colmn,start = 3, stop=4)
@@ -3412,6 +3412,7 @@ for (i in 1:length(suffixes)){
   NLSY79 <- bind_rows(NLSY79, df)
 }
 
+new_data
 NLSY79_cat = data.frame()
 for (i in 1:length(suffixes)){
   colmn = suffixes[i]
@@ -3424,7 +3425,7 @@ for (i in 1:length(suffixes)){
   colnames(df)<-gsub(colmn_sub,"", colnames(df))
   NLSY79_cat <- bind_rows(NLSY79_cat,df)
 }
-
+head(NLSY79)
 write.csv(NLSY79,"NLSY79_continuous.csv")
 write.csv(NLSY79_cat,"NLSY79_categorical.csv")
 
