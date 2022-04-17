@@ -3,12 +3,12 @@ title: "Exploratory_Analysis"
 author: "Connie Xu"
 date: "Spring 2022"
 output: 
-  html_document:
-    df_print: paged
+  md_document:
   pdf_document:
     keep_tex: yes
-  md_document:
-    variant: markdown_github
+  html_document:
+    df_print: paged
+always_allow_html: yes 
 ---
 
 ## Purpose
@@ -35,7 +35,6 @@ library(naniar)
 library(plotly)
 library(DT)
 library(tidyr)
-
 ```
 
 ## Summary of Columns 
@@ -307,7 +306,7 @@ NLSY_imputed_FAMILY_CARE_CAT %>% dplyr::select(PUBID_1997,YEAR,`YCCAL-6800`,CV_H
     theme(
       panel.grid.major = element_blank(),
       panel.grid.minor = element_blank()) +
-  scale_x_discrete(limits=c(2005,2008,2011,2015)) +
+  scale_x_continuous(limits=c(2005,2008,2011,2015)) +
     labs(title = "NLSY Panel Proportions:\nANY RELATIVES LIVE WITHIN 15 MINUTES OF CHILD'S HOME?", 
          y="Proportion", x = "",linetype = "Relative-Provided Childcare",color="Relative-Provided Childcare")
 
@@ -341,7 +340,7 @@ NSLY_Valid_Summarized %>% subset(YEAR>=2005) %>%
       panel.grid.minor = element_blank(),
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)
       ) +
-  scale_x_discrete(limits=c(2005,2010,2015)) +
+  scale_x_continuous(limits=c(2005,2010,2015)) +
     labs(title = "NLSY Panel Proportions:\nANY RELATIVES LIVE WITHIN 15 MINUTES OF CHILD'S HOME", 
          y="Mean Annual Income\n($ thousands)", x = "",linetype = "")
 ```
@@ -391,7 +390,7 @@ NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,CV_BIO_CHILD_HH,CHILDCA
       panel.grid.minor = element_blank(),
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
         labs(title = '', color = 'Response') +    
-    scale_x_discrete(limits=c(2010,2015)) +
+    scale_x_continuous(limits=c(2010,2015)) +
     labs(linetype = "Type of Childcare", color = "Type of Childcare",
          y="Count", x = "", title = "Intergenerational Childcare\n (all women with ONLY one biological child**)", 
          caption = "During first 6 years of first child")
@@ -410,7 +409,7 @@ NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,CV_BIO_CHILD_HH,CHILDCA
       panel.grid.minor = element_blank(),
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
         labs(title = '', color = 'Response') +    
-    scale_x_discrete(limits=c(2010,2015)) +
+    scale_x_continuous(limits=c(2010,2015)) +
     labs(linetype = "Type of Childcare", color = "Type of Childcare",
          y="Proportion of Year*", x = "", title = "Intergenerational Childcare\n (all women with AT LEAST one biological child**)", 
          caption = "*Each year's aggregated group includes mothers whose first-born child is under 6 years of age.")
@@ -485,7 +484,7 @@ mean_maternal_ages_ses %>%
       panel.grid.minor = element_blank(),
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
         labs(title = '', color = 'Response') +    
-    scale_x_discrete(limits=c(2010,2015)) +
+    scale_x_continuous(limits=c(2010,2015)) +
     labs(linetype = "Socioeconomic Status", color = "Socioeconomic Status",
          y="Mean Age", x = "", title = "")
 ```
