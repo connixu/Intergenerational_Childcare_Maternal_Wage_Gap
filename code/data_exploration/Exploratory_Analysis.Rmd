@@ -3,7 +3,7 @@ title: "Exploratory_Analysis"
 author: "Connie Xu"
 date: "Spring 2022"
 output: 
-  md_document:
+  github_document:
   pdf_document:
     keep_tex: yes
   html_document:
