@@ -254,7 +254,7 @@ p1 <- NLSY_imputed %>% dplyr::select(PUBID_1997,YEAR,BIOCHILD_6_YR,INCOME,`YCCAL
 p1
 ```
 
-![](exploratory_analysis_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 ``` r
 #ggplotly(p1) 
@@ -289,7 +289,7 @@ p2 <- NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,BIOCHILD_6_YR,INC
 p2
 ```
 
-![](exploratory_analysis_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ``` r
 #ggplotly(p2)
@@ -332,7 +332,7 @@ p3 <- NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,BIOCHILD_6_YR,INC
 p3
 ```
 
-![](exploratory_analysis_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 ``` r
 #ggplotly(p3) 
@@ -375,7 +375,7 @@ p4 <- NLSY_Valid_Childcare_2 %>% dplyr::select(PUBID_1997,YEAR,INCOME,PART_TIME,
 p4
 ```
 
-![](exploratory_analysis_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 ``` r
 #ggplotly(p4) 
@@ -422,7 +422,7 @@ p5 <- NLSY_imputed_FAMILY_CARE_CAT %>% dplyr::select(PUBID_1997,YEAR,`YCCAL-6800
 p5
 ```
 
-![](exploratory_analysis_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 ``` r
 #ggplotly(p5)
@@ -455,7 +455,7 @@ NLSY_imputed_FAMILY_CARE_CAT %>% dplyr::select(PUBID_1997,YEAR,`YCCAL-6800`,CV_H
 
     ## Warning: Removed 6 row(s) containing missing values (geom_path).
 
-![](exploratory_analysis_files/figure-gfm/unnamed-chunk-6-2.png)<!-- -->
+![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-6-2.png)<!-- -->
 
 As we can see, this variable has far fewer samples and spans a much
 smaller time period. Our ideal panel size for 5% margin of error and 95%
@@ -472,7 +472,7 @@ when we are aggregating for women without children - in particular,
 women with at least high school level education. These findings are
 consistent with those of Budig and England\[1\].
 
-![](exploratory_analysis_files/figure-gfm/Mean%20Income%20Over%20Time-1.png)<!-- -->
+![](Exploratory_Analysis_files/figure-gfm/Mean%20Income%20Over%20Time-1.png)<!-- -->
 
 #### Relative Availability vs Intergenerational Childcare vs Wages
 
@@ -503,7 +503,7 @@ NLSY_imputed_FAMILY_CARE_CAT %>% dplyr::select(PUBID_1997,YEAR,`YCCAL-6800`,CV_H
 
     ## `summarise()` has grouped output by 'relative_15', 'FAMILY_CARE_CAT', 'FAMILY_CARE_count'. You can override using the `.groups` argument.
 
-![](exploratory_analysis_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 It does look like while most respondents with valid responses to
 Relative-provided childcare did not have relatives within 15 miles,
 (i.e., the pool people with relative care as a primary source of
@@ -540,7 +540,7 @@ NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,CV_BIO_CHILD_HH,CHILDCA
 
     ## Warning: Removed 25 row(s) containing missing values (geom_path).
 
-![](exploratory_analysis_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ``` r
 NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,CV_BIO_CHILD_HH,CHILDCARE_TYPE) %>% subset(YEAR>2005) %>% 
@@ -569,7 +569,7 @@ NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,CV_BIO_CHILD_HH,CHILDCA
 
     ## Warning: Removed 25 row(s) containing missing values (geom_path).
 
-![](exploratory_analysis_files/figure-gfm/unnamed-chunk-8-2.png)<!-- -->
+![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-8-2.png)<!-- -->
 As predicted, we do see that a relatively small proportion of fathers
 taking the primary role of childcare while the mother is working / at
 school. rates for mothers who are taking care of their own children has
@@ -642,7 +642,7 @@ mean_maternal_ages %>%
     ## Warning: Continuous limits supplied to discrete scale.
     ## Did you mean `limits = factor(...)` or `scale_*_continuous()`?
 
-![](exploratory_analysis_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 The increasing age makes sense as we are following a cohort of
 respondents starting at a certain average age. However, within these
 respondents, there was not a big difference between average age of
@@ -658,6 +658,46 @@ the Balance Article using approximations from the Pew Research Center
 \[2\].
 
 ``` r
+ses_care_type <-  NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,MARRIED_OR_COHABITATING,INCOME,WORK_EDU_HRS,CV_INCOME_FAMILY,FAMILY_CARE,MATERNAL_AGE) %>% subset(YEAR>2005) %>%
+  dplyr::mutate(SES = ifelse(
+    #MARRIED_OR_COHABITATING == 1, ifelse(
+    CV_INCOME_FAMILY < 45000,'Lower-Class',
+    ifelse(CV_INCOME_FAMILY < 135000, 'Middle-Class','Upper-Class'))
+    #,ifelse(INCOME < 15000,'Lower-Class',
+    # ifelse(CV_INCOME_FAMILY < 75000, 'Middle-Class','Upper-Class')))) 
+    ) %>% 
+    dplyr::mutate(FAMILY_CARE_CAT = ifelse(`WORK_EDU_HRS`==0, 'No (Mother Provides Childcare)',ifelse(`FAMILY_CARE`==1,'Yes',ifelse(FAMILY_CARE==0,'No (Other Childcare)',NaN)))) %>%
+  dplyr::group_by(SES) %>% mutate(SES_TOT = n()) %>% ungroup() %>% 
+  dplyr::group_by(SES,FAMILY_CARE_CAT) %>% mutate(CARE_TOT = n()) %>% ungroup() %>%
+    mutate(CARE_PROP = CARE_TOT/SES_TOT) %>% ungroup() %>% 
+  group_by(SES,FAMILY_CARE_CAT,CARE_PROP) %>% dplyr::summarize() 
+```
+
+    ## `summarise()` has grouped output by 'SES', 'FAMILY_CARE_CAT'. You can override using the `.groups` argument.
+
+``` r
+ses_care_type %>%
+  ggplot(aes(x = SES, y= CARE_PROP)) +
+  geom_bar(stat="identity",aes(color = FAMILY_CARE_CAT,fill = FAMILY_CARE_CAT)) +
+  theme_ipsum(base_size = 12, axis_title_size = 14) +
+  scale_color_futurama(alpha = 0.75) +
+  scale_fill_futurama(alpha = 0.75) +
+
+    theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+        labs(title = '', color = 'Response') +    
+    labs(linetype = "Socioeconomic Status", color = "Child Care Category", fill = "Child Care Category", 
+         y="Proportion", x = "Socioeconomic Status (household income)", title = "Do richer people have more paid childcare? ")
+```
+
+![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+On average, each year’s mean maternal age (with first child) appears to
+be higher for upper classes vs for lower classes.
+
+``` r
 mean_maternal_ages_ses <-  NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,MARRIED_OR_COHABITATING,INCOME,CV_INCOME_FAMILY,FAMILY_CARE,MATERNAL_AGE) %>% subset(YEAR>2005) %>%
   dplyr::mutate(SES = ifelse(
     #MARRIED_OR_COHABITATING == 1, ifelse(
@@ -666,7 +706,7 @@ mean_maternal_ages_ses <-  NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,Y
     #,ifelse(INCOME < 15000,'Lower-Class',
     # ifelse(CV_INCOME_FAMILY < 75000, 'Middle-Class','Upper-Class')))) 
     ) %>% 
-  dplyr::group_by(YEAR,SES) %>% mutate(Mean_Maternal_Age = mean(MATERNAL_AGE)) %>% ungroup() %>%
+  group_by(YEAR,SES) %>% mutate(Mean_Maternal_Age = mean(MATERNAL_AGE)) %>% ungroup() %>% 
   dplyr::group_by(YEAR) %>% mutate(Overall_Mean_Maternal_Age = mean(MATERNAL_AGE)) %>% ungroup() %>% 
   group_by(YEAR,Mean_Maternal_Age,Overall_Mean_Maternal_Age,SES) %>% dplyr::summarize() 
 ```
@@ -700,10 +740,7 @@ mean_maternal_ages_ses %>%
 
     ## Warning: Removed 20 row(s) containing missing values (geom_path).
 
-![](exploratory_analysis_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
-
-On average, each year’s mean maternal age (with first child) appears to
-be higher for upper classes vs for lower classes.
+![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 ------------------------------------------------------------------------
 
