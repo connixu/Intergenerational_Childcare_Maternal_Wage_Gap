@@ -658,46 +658,6 @@ the Balance Article using approximations from the Pew Research Center
 \[2\].
 
 ``` r
-ses_care_type <-  NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,MARRIED_OR_COHABITATING,INCOME,WORK_EDU_HRS,CV_INCOME_FAMILY,FAMILY_CARE,MATERNAL_AGE) %>% subset(YEAR>2005) %>%
-  dplyr::mutate(SES = ifelse(
-    #MARRIED_OR_COHABITATING == 1, ifelse(
-    CV_INCOME_FAMILY < 45000,'Lower-Class',
-    ifelse(CV_INCOME_FAMILY < 135000, 'Middle-Class','Upper-Class'))
-    #,ifelse(INCOME < 15000,'Lower-Class',
-    # ifelse(CV_INCOME_FAMILY < 75000, 'Middle-Class','Upper-Class')))) 
-    ) %>% 
-    dplyr::mutate(FAMILY_CARE_CAT = ifelse(`WORK_EDU_HRS`==0, 'No (Mother Provides Childcare)',ifelse(`FAMILY_CARE`==1,'Yes',ifelse(FAMILY_CARE==0,'No (Other Childcare)',NaN)))) %>%
-  dplyr::group_by(SES) %>% mutate(SES_TOT = n()) %>% ungroup() %>% 
-  dplyr::group_by(SES,FAMILY_CARE_CAT) %>% mutate(CARE_TOT = n()) %>% ungroup() %>%
-    mutate(CARE_PROP = CARE_TOT/SES_TOT) %>% ungroup() %>% 
-  group_by(SES,FAMILY_CARE_CAT,CARE_PROP) %>% dplyr::summarize() 
-```
-
-    ## `summarise()` has grouped output by 'SES', 'FAMILY_CARE_CAT'. You can override using the `.groups` argument.
-
-``` r
-ses_care_type %>%
-  ggplot(aes(x = SES, y= CARE_PROP)) +
-  geom_bar(stat="identity",aes(color = FAMILY_CARE_CAT,fill = FAMILY_CARE_CAT)) +
-  theme_ipsum(base_size = 12, axis_title_size = 14) +
-  scale_color_futurama(alpha = 0.75) +
-  scale_fill_futurama(alpha = 0.75) +
-
-    theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-        labs(title = '', color = 'Response') +    
-    labs(linetype = "Socioeconomic Status", color = "Child Care Category", fill = "Child Care Category", 
-         y="Proportion", x = "Socioeconomic Status (household income)", title = "Do richer people have more paid childcare? ")
-```
-
-![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
-
-On average, each year’s mean maternal age (with first child) appears to
-be higher for upper classes vs for lower classes.
-
-``` r
 mean_maternal_ages_ses <-  NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,MARRIED_OR_COHABITATING,INCOME,CV_INCOME_FAMILY,FAMILY_CARE,MATERNAL_AGE) %>% subset(YEAR>2005) %>%
   dplyr::mutate(SES = ifelse(
     #MARRIED_OR_COHABITATING == 1, ifelse(
@@ -706,7 +666,7 @@ mean_maternal_ages_ses <-  NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,Y
     #,ifelse(INCOME < 15000,'Lower-Class',
     # ifelse(CV_INCOME_FAMILY < 75000, 'Middle-Class','Upper-Class')))) 
     ) %>% 
-  group_by(YEAR,SES) %>% mutate(Mean_Maternal_Age = mean(MATERNAL_AGE)) %>% ungroup() %>% 
+  dplyr::group_by(YEAR,SES) %>% mutate(Mean_Maternal_Age = mean(MATERNAL_AGE)) %>% ungroup() %>%
   dplyr::group_by(YEAR) %>% mutate(Overall_Mean_Maternal_Age = mean(MATERNAL_AGE)) %>% ungroup() %>% 
   group_by(YEAR,Mean_Maternal_Age,Overall_Mean_Maternal_Age,SES) %>% dplyr::summarize() 
 ```
@@ -740,7 +700,10 @@ mean_maternal_ages_ses %>%
 
     ## Warning: Removed 20 row(s) containing missing values (geom_path).
 
-![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](Exploratory_Analysis_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+On average, each year’s mean maternal age (with first child) appears to
+be higher for upper classes vs for lower classes.
 
 ------------------------------------------------------------------------
 
