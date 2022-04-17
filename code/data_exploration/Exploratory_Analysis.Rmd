@@ -191,8 +191,8 @@ p1 <- NLSY_imputed %>% dplyr::select(PUBID_1997,YEAR,BIOCHILD_6_YR,INCOME,`YCCAL
         labs(title = '', color = 'Response') +    
     labs(fill = "Primary Child Care Method is Relative-provided Care", 
          y="Count", x = "", title = "Relative-provided Childcare (First Child Only)")
-
-ggplotly(p1) 
+p1
+#ggplotly(p1) 
 
 ```
   
@@ -212,8 +212,8 @@ p2 <- NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,BIOCHILD_6_YR,INC
         labs(title = '', color = 'Response') +    
     labs(fill = "Primary Child Care Method is Relative-provided Care", 
          y="Count", x = "", title = "Relative-Provided Childcare (First Child,\n 6 and under, Part Time Work )")
-
-ggplotly(p2)
+p2
+#ggplotly(p2)
 ```
   
 We see similar trend to above with this filtering; furthermore, most years' panels appear to be over 400, generally evenly distributed in response (Relative-Provided vs not). Based on this, I think that we can still run panel-based models, particularly when considering that our sample includes only respondents of a certain age group and when considering that the report of population of working mothers in the US population (as reported by BLS) does not have a minimum for Part Time Work hours (I will be sure to note these caveats in terms of the representativeness of the sample).
@@ -234,8 +234,8 @@ p3 <- NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,BIOCHILD_6_YR,INC
         labs(title = '', color = 'Response') +    
     labs(fill = "Primary Child Care Method is Relative-provided Care", 
          y="Count", x = "", title = "Intergenerational Childcare (First Child,\n 6 and under,\n Part Time Work )")
-
-ggplotly(p3) 
+p3
+#ggplotly(p3) 
 ```
   
 If we were instead to filter for women with only 1 child at any point in time, more factors around multiple children can be naturally controlled; however, the sample size now dips below 300 in several years. If I run models on the sample with only one child, pooled regression will be better.   
@@ -259,8 +259,8 @@ p4 <- NLSY_Valid_Childcare_2 %>% dplyr::select(PUBID_1997,YEAR,INCOME,PART_TIME,
         labs(title = '', color = 'Response') +    
     labs(fill = "Primary Child Care Method is Relative-provided Care", 
          y="Count", x = "", title = "Intergenerational Childcare (First Child Only,\n 6 and under,\n Part Time Work )")
-
-ggplotly(p4) 
+p4
+#ggplotly(p4) 
 ```
   
 Interestingly, there appear to be comparable responses total when we are looking at childcare arrangements when looking at all women with all children under 6 (rather than just focusing on the firstborn). The patterns moreover look fairly similar to when the data was filtered differently.
@@ -286,8 +286,8 @@ p5 <- NLSY_imputed_FAMILY_CARE_CAT %>% dplyr::select(PUBID_1997,YEAR,`YCCAL-6800
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
         labs(title = , color = 'Response') +    
     labs(fill = "Relative 15 Miles Away??", y="Count", x = "")
-
-ggplotly(p5)
+p5
+#ggplotly(p5)
 
 NLSY_imputed_FAMILY_CARE_CAT %>% dplyr::select(PUBID_1997,YEAR,`YCCAL-6800`,CV_HH_UNDER_6,CV_BIO_CHILD_HH,INCOME,CV_ENROLLSTAT_EDT,`YCCA-450`,`YCCAL-450`,FAMILY_CARE,RELATIVE_CARE,SIBLING_CARE,`YCCAL-1100A~000002`,FAMILY_DAY_CARE,WORK_EDU_HRS) %>% subset(CV_HH_UNDER_6>0 & CV_BIO_CHILD_HH>0) %>%   
   subset(INCOME>0) %>% 
@@ -515,5 +515,6 @@ NLSY_79_children <- NLSY_79 %>% subset(NUMCH > 0)
 ```
 
 ---
-[1] Budig, M. J., & England, P. (2001). The Wage Penalty for Motherhood. American Sociological Review, 66(2), 204–225. https://doi.org/10.2307/2657415  
+
+[1] https://doi.org/10.2307/2657415  
 [2] https://www.thebalance.com/definition-of-middle-class-income-4126870#toc-how-is-middle-class-income-measured 
