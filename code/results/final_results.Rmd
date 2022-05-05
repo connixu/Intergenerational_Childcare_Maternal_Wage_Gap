@@ -2,9 +2,9 @@
 title: "Final Results:Intergenerational Childcare and Maternal Wages "
 date: "Spring 2022"
 output:
-  html_notebook:
-    df_print: paged
-    toc: true
+  md_document:
+    variant: markdown_github
+always_allow_html: true
 ---
 
 # Purpose  
@@ -108,6 +108,7 @@ NLSY_Valid_Childcare_Income_1 <- Valid_Childcare(NLSY_imputed,TRUE) %>% subset(I
 
 # Only looking at parent having one child (first child) - while their first child is under 6 years old 
 NLSY_Valid_Childcare_Part_Time_One_Child <- NLSY_Valid_Childcare_Part_Time_1 %>% subset(N_CHILDREN==1) 
+write.csv(NLSY_Valid_Childcare_Part_Time_One_Child,"~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_Valid_Childcare_Part_Time_One_Child.csv")
 NLSY_Valid_Childcare_Income_One_Child <- NLSY_Valid_Childcare_Income_1 %>% subset(N_CHILDREN==1) 
 
 psych::describe(NLSY_Valid_Childcare_Part_Time_One_Child %>% select(INCOME, MARRIED_OR_COHABITATING, BA_ABOVE,SPOUSAL_INCOME, MOTHER_AGE_FIRST_CHILD, MATERNAL_AGE,`YCCAL-6800`,FAMILY_CARE, N_CHILDREN,FULL_TIME,Relative_within_15_minutes,YEAR))
