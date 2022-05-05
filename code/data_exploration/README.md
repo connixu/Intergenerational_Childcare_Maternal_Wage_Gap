@@ -1,6 +1,6 @@
 Exploratory_Analysis
 ================
-Connie Xu
+Connie Xu  
 Spring 2022
 
 ## Purpose
