@@ -6,7 +6,7 @@ load("~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_new_shorten
 NLSY <- NLSY_new_shortened %>% subset(KEY_SEX_1997 == 2)
 
 # Step 2. Intergenerational Childcare - take the max (0-1) response across children where women have multiple children. 
-#COMMENT OUT if only one child is being considered for model.
+# COMMENT OUT if only one child is being considered for model.
 # NLSY$`YCCAL-1100A~000001` <- pmax(NLSY$`YCCAL-1100A.01~000001`,NLSY$`YCCAL-1100A.02~000001`,NLSY$`YCCAL-1100A.03~000001`,NLSY$`YCCAL-1100A.04~000001`,NLSY$`YCCAL-1100A.05~000002`,  na.rm = TRUE)
 # NLSY$`YCCAL-1100A~000002` <- pmax(NLSY$`YCCAL-1100A.01~000002`,NLSY$`YCCAL-1100A.02~000002`,NLSY$`YCCAL-1100A.03~000002`,NLSY$`YCCAL-1100A.04~000002`,NLSY$`YCCAL-1100A.05~000002`,  na.rm = TRUE)
 # NLSY$`YCCAL-1100A~000003` <- pmax(NLSY$`YCCAL-1100A.01~000003`,NLSY$`YCCAL-1100A.02~000003`,NLSY$`YCCAL-1100A.03~000003`,NLSY$`YCCAL-1100A.04~000003`,NLSY$`YCCAL-1100A.05~000003`,  na.rm = TRUE)
@@ -27,6 +27,9 @@ NLSY$`YCCAL-1100A~000006` <- NLSY$`YCCAL-1100A.01~000006`
 NLSY$`YCCAL-1100A~000007` <- NLSY$`YCCAL-1100A.01~000007`
 NLSY$`YCCAL-1100A~000008` <- NLSY$`YCCAL-1100A.01~000008`
 NLSY$`YCCAL-1100A~000009` <- NLSY$`YCCAL-1100A.01~000009`
+
+NLSY$YEAR <- as.numeric(NLSY$YEAR)
+NLSY$KEY_BDATE_Y_1997 <- as.numeric(NLSY$KEY_BDATE_Y_1997)
 
 # Step 3. Filling for 'Missing' Data 
 NLSY_imputed <- NLSY %>% 
@@ -92,10 +95,11 @@ NLSY_imputed <- NLSY %>%
   dplyr::mutate(FAMILY_CARE = ifelse((RELATIVE_CARE ==1) | (SIBLING_CARE==1) | (FAMILY_DAY_CARE ==1),1,0)) %>%
   dplyr::mutate(FORMAL_CHILDCARE = ifelse((CHILDCARE_CENTER ==1) | (FORMAL_SCHOOL==1) | (AFTER_SCHOOL_CARE ==1),1,0)) %>%
   dplyr::mutate(CHILDCARE_TYPE = ifelse(FORMAL_CHILDCARE > 0 & FAMILY_CARE > 0, 'Both', ifelse(FORMAL_CHILDCARE > 0, 'Formal', ifelse(FAMILY_CARE > 0 | NON_RELATIVE_CARE > 0, 'Informal', ifelse(SPOUSAL_CHILDCARE,'Spouse','Self'))))) %>%
-  dplyr::mutate(MATERNAL_AGE = KEY_BDATE_Y_1997-FIRST_CHILD_BDATE) %>% 
+  dplyr::mutate(MATERNAL_AGE = YEAR - KEY_BDATE_Y_1997) %>% 
+  dplyr::mutate(MOTHER_AGE_FIRST_CHILD = KEY_BDATE_Y_1997-FIRST_CHILD_BDATE) %>% 
   dplyr::mutate(BIOCHILD_6_YR = FIRST_CHILD_BDATE + 5) %>% 
   dplyr::group_by(PUBID_1997) %>% 
-  dplyr::mutate(MATERNAL_AGE = ifelse(!all(is.na(MATERNAL_AGE)), max(MATERNAL_AGE, na.rm=T), NA)) %>% 
+  #dplyr::mutate(MATERNAL_AGE = ifelse(!all(is.na(MATERNAL_AGE)), max(MATERNAL_AGE, na.rm=T), NA)) %>% 
   ungroup() %>% 
   
   # Step 5. Recoding existent variables into binary 
@@ -110,16 +114,19 @@ NLSY_imputed <- NLSY %>%
   dplyr::mutate(RELATIVE_CARE_CAT = ifelse(`RELATIVE_CARE`== 0, 'No',ifelse(`RELATIVE_CARE`== 1,'Yes',NA))) %>% 
   dplyr::mutate(Relative_within_15_minutes = ifelse(`YCCAL-6800`==1, ' - Yes',ifelse(`YCCAL-6800`==0,' - No','NaN')))
 
+
 # Step 6 . Recode YEAR as numeric 
 NLSY_imputed$YEAR <- as.numeric(NLSY_imputed$YEAR)
 
 # Step 7. Log Income
-NLSY_imputed$INCOME_LOG <- log(NLSY_imputed$INCOME)
-
+NLSY_imputed$INCOME_LOG <- log(NLSY_imputed$INCOME+1)
+NLSY_imputed$CV_INCOME_FAMILY_LOG <- log(NLSY_imputed$CV_INCOME_FAMILY+1)
+NLSY_imputed$SPOUSAL_INCOME_LOG <- log(NLSY_imputed$SPOUSAL_INCOME+1)
+colnames(NLSY_imputed)
 # COMMENT OUT if looking at multiple children
 save(NLSY_imputed, file = "~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_imputed_first_child.RData")
 
 # COMMENT OUT if only looking at first child 
-#save(NLSY_imputed, file = "~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_imputed.RData")
+# save(NLSY_imputed, file = "~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_imputed.RData")
 
 

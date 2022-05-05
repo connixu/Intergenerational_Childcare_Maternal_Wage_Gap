@@ -2,19 +2,12 @@
 title: "Exploratory_Analysis"
 author: "Connie Xu"
 date: "Spring 2022"
-output: 
-  github_document:
-  pdf_document:
-    keep_tex: yes
+output:
   html_document:
     df_print: paged
-always_allow_html: yes 
+    keep_md: yes
 ---
 
-## Purpose
-This r markdown file (also rendered as R and md files) includes exploratory analysis work completed for NLSY1997. This includes additional preprocessing and cleaning steps to make variables easier to understand, as well as initial descriptive statistics of distribution and data missingness. 
-
-*Note that some results were adapted from work completed in Time Series Labs using the data that I downloaded, cleaned, and processed.* 
 
 ```{r load libraries, echo=FALSE, message=FALSE, warnings=FALSE}
 library(plm)
@@ -37,12 +30,61 @@ library(DT)
 library(tidyr)
 ```
 
+This r markdown file (also rendered as R and md files) includes exploratory analysis work completed for NLSY1997. This includes additional preprocessing and cleaning steps to make variables easier to understand, as well as initial descriptive statistics of distribution and data missingness.
+
+*Note that some results were adapted from work completed in Time Series Labs using the data that I downloaded, cleaned, and processed.* 
 ## Summary of Columns 
 Currently, my selected dataset is the **NLSY97**. The following are some relevant columns in the data set:  
 
+```{r functions, echo=FALSE}
+# Select relevant columns and filter for individuals with valid data about their education, filter for women with some income generating work; filter for High School + 
+# Make df that includes working women with valid data about childcare
+Valid_Data <- function(df) { 
+  NLSY_Valid <-  df %>% 
+  filter(CV_HGC_EVER_EDT != 95 & !is.na(CV_HGC_EVER_EDT)) %>% 
+  filter(CV_HGC_EVER_EDT >= 12) %>% filter(YEAR>=2005)
+}
+
+Valid_Childcare <- function(df,first_child) {
+  NLSY_Valid <- Valid_Data(df)
+  NLSY_Valid_Childcare <- NLSY_Valid %>% subset(INCOME>0) %>% subset(WORK_EDU_HRS>=0) %>% 
+    subset(WORK_EDU_HRS != 999) %>% 
+  subset(SELF_CARE==0) %>% subset(YEAR <= BIOCHILD_6_YR)
+  
+  if(first_child == TRUE) {
+  NLSY_Valid_Childcare <- NLSY_Valid_Childcare %>% subset(YEAR <= BIOCHILD_6_YR)
+  }
+  else{
+  NLSY_Valid_Childcare <- NLSY_Valid_Childcare %>% subset(CV_HH_UNDER_6>0)
+  }
+}
+
+# Filter for data that includes working women (Part Time and up) with valid data about childcare
+Valid_Childcare_Income <- function(df,first_child) {
+  NLSY_Valid_Childcare <- Valid_Childcare(df,first_child)
+  NLSY_Valid_Childcare_Income <- NLSY_Valid_Childcare %>% subset(INCOME>0) %>% subset(PART_TIME==1)
+}
+```
+
 ```{r load data, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE}
-# Load Data - Pre-cleaned 
-load("~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_new_shortened.RData")
+# Load Data - YCCA / YCCAL - any child under 6 years old
+load("~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_imputed.RData")
+NLSY_Valid_Childcare_Part_Time_2 <- Valid_Childcare_Income(NLSY_imputed,FALSE) # Part Time and Above 
+NLSY_Valid_Childcare_Income_2 <- Valid_Childcare(NLSY_imputed,FALSE) %>% subset(INCOME > 0) # Any Income Generated 
+NLSY_Valid_Childcare_Part_Time_2 <- NLSY_Valid_Childcare_Part_Time_2[!is.na(NLSY_Valid_Childcare_Part_Time_2$FAMILY_CARE), ]
+
+# Childcare Variables here are averaged across children (YCCAL), looking at respondents while their first child is under 6 years old
+load("~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_imputed_first_child.RData")
+NLSY_Valid_Childcare_Part_Time_1 <- Valid_Childcare_Income(NLSY_imputed,TRUE)
+NLSY_Valid_Childcare_Part_Time_1 <- NLSY_Valid_Childcare_Part_Time_1[!is.na(NLSY_Valid_Childcare_Part_Time_1$FAMILY_CARE), ]
+
+NLSY_Valid_Childcare_Income_1 <- Valid_Childcare(NLSY_imputed,TRUE) %>% subset(INCOME > 0)
+
+# Only looking at parent having one child (first child) - while their first child is under 6 years old 
+NLSY_Valid_Childcare_Part_Time_One_Child <- NLSY_Valid_Childcare_Part_Time_1 %>% subset(N_CHILDREN==1) 
+NLSY_Valid_Childcare_Income_One_Child <- NLSY_Valid_Childcare_Income_1 %>% subset(N_CHILDREN==1) 
+
+psych::describe(NLSY_Valid_Childcare_Part_Time_One_Child %>% select(INCOME, MARRIED_OR_COHABITATING, BA_ABOVE,SPOUSAL_INCOME, MOTHER_AGE_FIRST_CHILD, MATERNAL_AGE,`YCCAL-6800`,FAMILY_CARE, N_CHILDREN,FULL_TIME,Relative_within_15_minutes))
 ```
 
 | Variable Name  | Variable Text | Values  |
@@ -103,33 +145,9 @@ Note that not all of these columns were ultimately used for this project. Of the
   - MARRIED_OR_COHABITATING - adapted from Marital Status Variable at the end of the survey year (MAR_STATUS.12_XRND). I coded only 'Married' or 'Not Married, Cohabitating' (1 = Never Married, Cohabiting; 2 = Married) as '1' ("Married/Cohabitating"); other categories (e.g., Widowed, Divorced, Never Married) were coded as '0' ("Not Married")  
   - CV_CITIZENSHIP - '2' is recoded as '0' as it means 'not a citizen'  
   - BA_ABOVE - Highest Education Attainment (CV_HGC_EDT) variable recoded such that anything over 4 Years of College (16) is coded as '1'.  
-* I am coding the childcare variables as the case where any of the respondent's children are recieving childcare and are under 6 years of age.  
+* I am coding the childcare variables as the case where any of the respondent's children are receiving childcare and are under 6 years of age.  
 * Income Variables are imputed for NA's (taken as 0).  
 * MATERNAL_AGE variable is created by subtracting the respondent's first child's birthday (FIRST_CHILD_BDATE) from the respondent's birthday (KEY_BDATE_Y_1997).   
-
-```{r}
-# Select relevant columns and filter for individuals with valid data about their education, filter for women with some income generating work; filter for High School + 
-# Make df that includes working women with valid data about childcare
-Valid_Childcare <- function(df,first_child) {
-  NLSY_Valid <-  df %>% 
-  filter(CV_HGC_EVER_EDT != 95 & !is.na(CV_HGC_EVER_EDT)) %>% 
-  filter(CV_HGC_EVER_EDT >= 12) 
-  NLSY_Valid_Childcare <- NLSY_Valid %>% subset(INCOME>0) %>% subset(WORK_EDU_HRS>=0) %>% 
-  subset(SELF_CARE==0) %>% subset(YEAR <= BIOCHILD_6_YR)
-  if(first_child == TRUE) {
-  NLSY_Valid_Childcare <- NLSY_Valid_Childcare %>% subset(YEAR <= BIOCHILD_6_YR)
-  }
-  else{
-  NLSY_Valid_Childcare <- NLSY_Valid_Childcare %>% subset(CV_HH_UNDER_6>0)
-  }
-}
-
-
-# Filter for data that includes working women (Part Time and up) with valid data about childcare
-Valid_Childcare_Income <- function(df) {
-  NLSY_Valid_Childcare_Income <- df %>% subset(INCOME>0) %>% subset(PART_TIME==1)
-}
-```
 
 
 ### Independent and Dependent Variables
@@ -141,7 +159,7 @@ Valid_Childcare_Income <- function(df) {
 * FAMILY_CARE - Childcare from Relative, Family Daycare (i.e., dropping child off with family), Sibling Care 
 * Relative_within_15_minutes - Does a relative live within 15 minutes of the respondent? 
 
-#### Control Variables 
+#### Other Controls
 * BA+ - Level of Education 
 * N_CHILDREN - Number of children in household total (Not Applicable for models with only first child)
 * MARRIED_OR_COHABITATING 
@@ -159,14 +177,16 @@ load("~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_imputed_fir
 NLSY_Valid <-  NLSY_imputed %>% 
 filter(CV_HGC_EVER_EDT != 95 & !is.na(CV_HGC_EVER_EDT)) %>% 
 filter(CV_HGC_EVER_EDT >= 12) 
-dt <- describe(NLSY_Valid %>% select(INCOME,FAMILY_CARE,`YCCAL-6800`,BA_ABOVE,N_CHILDREN,MARRIED_OR_COHABITATING,SPOUSAL_INCOME,MATERNAL_AGE))
+dt <- psych::describe(NLSY_Valid %>% select(INCOME,FAMILY_CARE,`YCCAL-6800`,BA_ABOVE,N_CHILDREN,MARRIED_OR_COHABITATING,SPOUSAL_INCOME,MATERNAL_AGE, N_CHILDREN))
 dt
+
 ```
 
-### Data Completeness and Sample Size  
+## Data Completeness and Sample Size  
 First, I looked at the count and distribution of valid responses, as well as the count of responses of "Yes" within our dataset over time. For the sake of these analyses, I filtered for years after 2005 (as prior to this, many respondents may not have graduated from university). 
 
-### Family-Provided Childcare Data (First Child Only)
+### Valid Family Provided Childcare
+#### Any Children 6 and under - Any work from respondent)
 In the figure below, I filtered for women with at least one child, generating >$0 in income though I also included mothers indicating 0 hours at work or at school without their child. I made the latter decision to see what proportion of our survey could possibly be working from home and/or potentially attempting to work with children at all times. 
 
 Note that for many later models, I will be focusing many models on the childcare options for the first child, and the time period when this child is 0-6 years of age. For such models, we would be ignoring the childcare options provided for the later children in the same time span. 
@@ -190,14 +210,15 @@ p1 <- NLSY_imputed %>% dplyr::select(PUBID_1997,YEAR,BIOCHILD_6_YR,INCOME,`YCCAL
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
         labs(title = '', color = 'Response') +    
     labs(fill = "Primary Child Care Method is Relative-provided Care", 
-         y="Count", x = "", title = "Relative-provided Childcare (First Child Only)")
+         y="Count", x = "", title = "Relative-provided Childcare (Any child under 6)")
 p1
-#ggplotly(p1) 
+ggplotly(p1) 
 
 ```
   
 The above distribution chard does not however filter for the final two criteria - part time work and the first child being 6 or under. Below, I want to primarily look at whether the valid sample size would be sufficient for running panel models (noting that ideal sample size when looking at women with any children under 3 would be 385 with a 5% margin of error and 95% confidence level).
 
+### Any Children WHILE Child 1 is under 6 (Part Time Working Mother)
 ```{r}
 p2 <- NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,BIOCHILD_6_YR,INCOME,PART_TIME,`FAMILY_CARE`,`RELATIVE_CARE`,WORK_EDU_HRS,CV_BIO_CHILD_HH) %>% subset(YEAR>=2005) %>% subset(INCOME>0) %>% subset(YEAR <= BIOCHILD_6_YR) %>% subset(CV_BIO_CHILD_HH>0) %>%
   subset(PART_TIME ==1) %>% dplyr::mutate(FAMILY_CARE_CAT = ifelse(`WORK_EDU_HRS`==0, 'No (Mother Provides Childcare)',ifelse(`FAMILY_CARE`==1,'Yes',ifelse(FAMILY_CARE==0,'No (Other Childcare)',NaN)))) %>% dplyr::group_by(YEAR,FAMILY_CARE_CAT) %>% dplyr::mutate(FAMILY_CARE_CAT_proportion = n()) %>% ungroup() %>% dplyr::group_by(YEAR,FAMILY_CARE_CAT, FAMILY_CARE_CAT_proportion) %>% dplyr::summarize() %>% 
@@ -220,6 +241,7 @@ We see similar trend to above with this filtering; furthermore, most years' pane
 
 Also note that because I am filtering for part time work hours using YCCA-450 and YCCAL-450 (time spent on working / education without children), the 'mother-provided childcare' option is no longer shown in our distribution. 
 
+### ONLY First Child (Part Time Working Mother)
 ```{r}
 p3 <- NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,BIOCHILD_6_YR,INCOME,PART_TIME,`FAMILY_CARE`,`RELATIVE_CARE`,WORK_EDU_HRS,CV_BIO_CHILD_HH) %>% subset(YEAR>=2005) %>% subset(INCOME>0) %>% subset(YEAR <= BIOCHILD_6_YR) %>% subset(CV_BIO_CHILD_HH==1) %>%
   subset(PART_TIME ==1) %>% dplyr::mutate(FAMILY_CARE_CAT = ifelse(`WORK_EDU_HRS`==0, 'No (Mother Provides Childcare)',ifelse(`FAMILY_CARE`==1,'Yes',ifelse(FAMILY_CARE==0,'No (Other Childcare)',NaN)))) %>% dplyr::group_by(YEAR,FAMILY_CARE_CAT) %>% dplyr::mutate(FAMILY_CARE_CAT_proportion = n()) %>% ungroup() %>% dplyr::group_by(YEAR,FAMILY_CARE_CAT, FAMILY_CARE_CAT_proportion) %>% dplyr::summarize() %>% 
@@ -240,7 +262,7 @@ p3
   
 If we were instead to filter for women with only 1 child at any point in time, more factors around multiple children can be naturally controlled; however, the sample size now dips below 300 in several years. If I run models on the sample with only one child, pooled regression will be better.   
 
-### Family-Provided Childcare Data (All Children)
+### Family-Provided Childcare Data (All Children) - Part Time Work 
 
 I also wanted to quickly see what would happen if we are considering all children in the household under 6, and all childcare options provided to them at any given point in time. This model is a bit more difficult to interpret at times.
 ```{r}
@@ -267,6 +289,7 @@ Interestingly, there appear to be comparable responses total when we are looking
 
 ### Relative Care 
 Finally, I wanted to look at an alternative independent variable measure - the question about whether a relative is 15 miles away. This data is only valid for respondents of the YCCAL version of the survey (i.e., the younger cohort), and only seems to apply when there is at least **some** relative-provided childcare. 
+
 ```{r}
 NLSY_imputed$`YCCA-450`<- as.numeric(NLSY_imputed$`YCCA-450`)
 NLSY_imputed$`YCCAL-450`<- as.numeric(NLSY_imputed$`YCCAL-450`)
@@ -288,69 +311,48 @@ p5 <- NLSY_imputed_FAMILY_CARE_CAT %>% dplyr::select(PUBID_1997,YEAR,`YCCAL-6800
     labs(fill = "Relative 15 Miles Away??", y="Count", x = "")
 p5
 #ggplotly(p5)
-
-NLSY_imputed_FAMILY_CARE_CAT %>% dplyr::select(PUBID_1997,YEAR,`YCCAL-6800`,CV_HH_UNDER_6,CV_BIO_CHILD_HH,INCOME,CV_ENROLLSTAT_EDT,`YCCA-450`,`YCCAL-450`,FAMILY_CARE,RELATIVE_CARE,SIBLING_CARE,`YCCAL-1100A~000002`,FAMILY_DAY_CARE,WORK_EDU_HRS) %>% subset(CV_HH_UNDER_6>0 & CV_BIO_CHILD_HH>0) %>%   
-  subset(INCOME>0) %>% 
-  # dplyr::mutate(FAMILY_CARE_CAT = ifelse(`WORK_EDU_HRS`==0, 'No (Mother Provides Childcare)',ifelse(`FAMILY_CARE`==1,'Yes',ifelse(FAMILY_CARE==0,'No (Other Childcare)',NaN)))) %>% 
-  dplyr::mutate(relative_15 = ifelse(`YCCAL-6800`==1, 'Yes',ifelse(`YCCAL-6800`==0,'No','NA'))) %>% 
-  group_by(YEAR) %>% dplyr::mutate(year_count = n()) %>% ungroup() %>% 
-  dplyr::group_by(YEAR,relative_15) %>% dplyr::mutate(relative_15_proportion = n()/year_count) %>% 
-  ungroup() %>%
-  #subset(relative_15 == 'Yes') %>% 
-  dplyr::group_by(YEAR, relative_15, relative_15_proportion) %>% dplyr::summarize() %>% 
-  ggplot(aes(x = YEAR, y = relative_15_proportion)) +
-  geom_point(aes(color = relative_15))+
-  geom_line(stat="identity",aes(color = relative_15, linetype = relative_15)) +
-  theme_ipsum(base_size = 12, axis_title_size = 14) +
-  scale_color_futurama(alpha = 0.75) +
-    theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank()) +
-  scale_x_continuous(limits=c(2005,2008,2011,2015)) +
-    labs(title = "NLSY Panel Proportions:\nANY RELATIVES LIVE WITHIN 15 MINUTES OF CHILD'S HOME?", 
-         y="Proportion", x = "",linetype = "Relative-Provided Childcare",color="Relative-Provided Childcare")
-
 ```
-  
-As we can see, this variable has far fewer samples and spans a much smaller time period. Our ideal panel size for 5% margin of error and 95% confidence level is 385; thus this variable can also only be looked at from a pooled perspective.  
+Note that these reponses tend to be very unbalanced; most respondents here consist of 'yes' responses. Furthermore, this variable has far fewer samples and spans a much smaller time period. Our ideal panel size for 5% margin of error and 95% confidence level is 385; thus this variable can also only be looked at from a pooled perspective.  
 
-### Descriptive Statistics and Basic Trends
+## Descriptive Statistics and Basic Trends
 
-#### Mean Income Over Time
+### Mean Income Over Time
 
 This first plot shows that mean income over time seems to increase slower for our panels when we are aggregating for women with children vs when we are aggregating for women without children - in particular, women with at least high school level education. These findings are consistent with those of Budig and England[1]. 
 
 ```{r Mean Income Over Time, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+load("~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_imputed.RData")
+
 # No filtering for only individuals with valid data around inter-generational childcare 
 NLSY_Valid <-  NLSY_imputed %>% 
 filter(CV_HGC_EVER_EDT != 95 & !is.na(CV_HGC_EVER_EDT)) %>% 
-filter(CV_HGC_EVER_EDT >= 12) 
-
-NSLY_Valid_Summarized <- NLSY_Valid %>% dplyr::mutate(ANY_CHILDREN = ifelse(N_CHILDREN == 0,0,1)) %>% group_by(YEAR,ANY_CHILDREN) %>% dplyr::summarize(mean_income = mean(INCOME,na.rm=TRUE)) %>% mutate(ANY_CHILDREN = ifelse(ANY_CHILDREN==0,'No Children', 'One or More Children'))
-
+filter(BA_ABOVE== 1) 
+NSLY_Valid_Summarized <- NLSY_Valid %>% dplyr::mutate(ANY_CHILDREN = ifelse(N_CHILDREN == 0,0,1)) %>% group_by(YEAR,ANY_CHILDREN) %>% dplyr::summarize(mean_income = mean(INCOME,na.rm=TRUE)) %>% mutate(ANY_CHILDREN = ifelse(ANY_CHILDREN==0,'No Children', 'One or More Children')) 
+NSLY_Valid_Summarized
 NSLY_Valid_Summarized$YEAR <- as.numeric(NSLY_Valid_Summarized$YEAR)
 
-NSLY_Valid_Summarized %>% subset(YEAR>=2005) %>% 
+NSLY_Valid_Summarized %>% 
   ggplot(.,aes(x=YEAR, y=mean_income/1000)) +
   geom_point(color = "#273237") + 
   geom_line(color = "#273237",aes(linetype = ANY_CHILDREN)) + 
   theme_ipsum(base_size = 12, axis_title_size = 14) +
     theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
+
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)
       ) +
-  scale_x_continuous(limits=c(2005,2010,2015)) +
-    labs(title = "NLSY Panel Proportions:\nANY RELATIVES LIVE WITHIN 15 MINUTES OF CHILD'S HOME", 
-         y="Mean Annual Income\n($ thousands)", x = "",linetype = "")
+    labs(title = "", 
+         y="Mean Annual Income\n (USD, thousands)", x = "",linetype = "")
 ```
 
-#### Relative Availability vs Intergenerational Childcare vs Wages 
+
+
+### Relative Availability vs Intergenerational Childcare
 
 ```{r}
-NLSY_imputed_FAMILY_CARE_CAT <- NLSY_imputed_FAMILY_CARE_CAT %>% subset(!is.na(`YCCAL-6800`))
+NLSY_imputed_FAMILY_CARE_CAT <- NLSY_imputed_FAMILY_CARE_CAT %>% subset(!is.na(`YCCAL-6800`)) %>% subset(`YCCAL-6800`!='NA')
 NLSY_imputed_FAMILY_CARE_CAT <- NLSY_imputed_FAMILY_CARE_CAT %>% subset(!is.na(FAMILY_CARE))
-
+unique(NLSY_imputed_FAMILY_CARE_CAT$`YCCAL-6800`)
+         
 NLSY_imputed_FAMILY_CARE_CAT %>% dplyr::select(PUBID_1997,YEAR,`YCCAL-6800`,CV_HH_UNDER_6,CV_BIO_CHILD_HH,INCOME,CV_ENROLLSTAT_EDT,`YCCA-450`,`YCCAL-450`,FAMILY_CARE) %>% subset(CV_HH_UNDER_6>0 & CV_BIO_CHILD_HH>0) %>% 
   #subset(`YCCAL-450`!=0) %>% 
   dplyr::mutate(relative_15 = ifelse(`YCCAL-6800`==1, 'Yes',ifelse(`YCCAL-6800`==0,'No','NaN'))) %>%
@@ -365,14 +367,17 @@ NLSY_imputed_FAMILY_CARE_CAT %>% dplyr::select(PUBID_1997,YEAR,`YCCAL-6800`,CV_H
   theme_ipsum(base_size = 12, axis_title_size = 14) +
   scale_fill_manual(values=c("#ff6f00", "#008fa0")) + 
     theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
         labs(title = , color = 'Response') +    
     labs(fill = "Relative Care is a primary source of childcare?", y="Percent of Data", x = "Relative is within 15 Miles?")
 
 ```
-It does look like while most respondents with valid responses to Relative-provided childcare did not have relatives within 15 miles, (i.e., the pool people with relative care as a primary source of chilcare and the pool of people without both have proportionally more respondents without relatives living within 15 miles) respondents with relatives within 15 miles tend to have proportionally more people with relatives designated as a primary source of childcare.  
+
+It does look like while most respondents with valid responses to Relative-provided childcare did not have relatives within 15 miles, (i.e., the pool people with relative care as a primary source of childcare and the pool of people without both have proportionally more respondents without relatives living within 15 miles) respondents with relatives within 15 miles tend to have proportionally more people with relatives designated as a primary source of childcare.  
+
+### Proportions of Primary Childcare 
+
+The plots below look at the proportion breakdown of childcare options across approximately a decade of NLSY responses. 
 
 ```{r}
 NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,CV_BIO_CHILD_HH,CHILDCARE_TYPE) %>% subset(YEAR>2005) %>% 
@@ -386,50 +391,44 @@ NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,CV_BIO_CHILD_HH,CHILDCA
   #scale_fill_manual(values=c("#C9473B", "#75A1AD")) + 
   scale_color_futurama(alpha = 0.75) +
     theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
         labs(title = '', color = 'Response') +    
     scale_x_continuous(limits=c(2010,2015)) +
     labs(linetype = "Type of Childcare", color = "Type of Childcare",
-         y="Count", x = "", title = "Intergenerational Childcare\n (all women with ONLY one biological child**)", 
-         caption = "During first 6 years of first child")
+         y="Proportion of Mothers in Wave*", x = "", title = "Primary Source of Childcare", 
+         caption = "*Each year's aggregated group includes mothers whose first-born child is under 6 years of age.")
 
-NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,CV_BIO_CHILD_HH,CHILDCARE_TYPE) %>% subset(YEAR>2005) %>% 
-  dplyr::group_by(YEAR) %>% mutate(Total_Year = n()) %>% ungroup() %>%
-  group_by(YEAR,CHILDCARE_TYPE) %>% dplyr::mutate(CHILDCARE_TYPE_COUNT = n()/Total_Year) %>% ungroup() %>%  dplyr::group_by(YEAR,CHILDCARE_TYPE, CHILDCARE_TYPE_COUNT) %>% dplyr::summarize() %>% 
+NLSY_Valid_Childcare_Income_One_Child %>% dplyr::select(PUBID_1997,YEAR,CV_BIO_CHILD_HH,SPOUSAL_CHILDCARE,FORMAL_CHILDCARE,WORK_EDU_HRS,FAMILY_CARE) %>% subset(YEAR>2005) %>% 
+  dplyr::group_by(YEAR) %>% mutate(Total_Year = n()) %>% ungroup() %>% dplyr::mutate(FAMILY_CARE_CAT = ifelse(`WORK_EDU_HRS`==0, 'Mother Provides Childcare',ifelse(`FAMILY_CARE`==1 & FORMAL_CHILDCARE==1, 'Z Family and Formal',ifelse(`FAMILY_CARE`==1,'Family Provided Childcare',ifelse(FORMAL_CHILDCARE==1, 'Formal Childcare Options', ifelse(SPOUSAL_CHILDCARE==1, 'Spousal Childcare', 'Other Childcare Options')))))) %>%
+  group_by(YEAR,FAMILY_CARE_CAT) %>% dplyr::mutate(CHILDCARE_TYPE_COUNT = n()/Total_Year) %>% ungroup() %>%  dplyr::group_by(YEAR,FAMILY_CARE_CAT, CHILDCARE_TYPE_COUNT) %>% dplyr::summarize() %>% 
   ggplot(aes(x = YEAR, y = CHILDCARE_TYPE_COUNT)) +
-  geom_point(stat="identity",aes(color = CHILDCARE_TYPE)) +
-  geom_line(stat="identity",aes(color = CHILDCARE_TYPE, linetype = CHILDCARE_TYPE)) +
+  geom_point(stat="identity",aes(color = FAMILY_CARE_CAT)) +
+  geom_line(stat="identity",aes(color = FAMILY_CARE_CAT, linetype = FAMILY_CARE_CAT)) +
   theme_ipsum(base_size = 12, axis_title_size = 14) +
   #scale_fill_manual(values=c("#C9473B", "#75A1AD")) + 
   scale_color_futurama(alpha = 0.75) +
     theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
         labs(title = '', color = 'Response') +    
-    scale_x_continuous(limits=c(2010,2015)) +
-    labs(linetype = "Type of Childcare", color = "Type of Childcare",
-         y="Proportion of Year*", x = "", title = "Intergenerational Childcare\n (all women with AT LEAST one biological child**)", 
-         caption = "*Each year's aggregated group includes mothers whose first-born child is under 6 years of age.")
+    scale_x_continuous(limits=c(2006,2016)) +
+    labs(linetype = "Primary Type of Childcare", color = "Primary Type of Childcare",
+         y="Proportion of Mothers in Wave*", x = "Survey Year", title = "Primary Childcare Option(s)", subtitle="(all women with ONLY one biological child)", 
+         caption = "*Each year's aggregated group includes mothers with only one child under 6 years of age.")
 
 ```
 As predicted, we do see that a relatively small proportion of fathers taking the primary role of childcare while the mother is working / at school. rates for mothers who are taking care of their own children has been relatively flat, and it appears that over time, higher proportions of mothers in the surveyed population (with children under 6) are opting toward formal rather than informal childcare options. This was found in the graphs for both time spans with ONLY one child and for time spans with any number of children (while child 1 is under 6 years old). 
 
 Note that 'both' formal and informal childcare options here are possible to be designated.
 
-#### Mean Age of Mothers w/first child
-
-##### Across Childcare Arrangements 
+### Mean Age of Mothers w/first child Across Childcare Arrangements 
 
 I wanted then to plot the mean age of the mothers in the cohort (when their child is first born). This dataset is filtered for mothers with children under 6 for any given year. 
 
 ```{r}
-mean_maternal_ages <-  NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,WORK_EDU_HRS,FAMILY_CARE,MATERNAL_AGE) %>% subset(YEAR>2005) %>%
-  dplyr::mutate(FAMILY_CARE_CAT = ifelse(`WORK_EDU_HRS`==0, 'No (Mother Provides Childcare)',ifelse(`FAMILY_CARE`==1,'Yes',ifelse(FAMILY_CARE==0,'No (Other Childcare)',NaN)))) %>%
-  dplyr::group_by(YEAR,FAMILY_CARE_CAT) %>% mutate(Mean_Maternal_Age = mean(MATERNAL_AGE)) %>% ungroup() %>%
-  dplyr::group_by(YEAR) %>% mutate(Overall_Mean_Maternal_Age = mean(MATERNAL_AGE)) %>% ungroup() %>% 
+mean_maternal_ages <-  NLSY_Valid_Childcare_Income_One_Child %>% dplyr::select(PUBID_1997,YEAR,WORK_EDU_HRS,FAMILY_CARE,MOTHER_AGE_FIRST_CHILD,FORMAL_CHILDCARE) %>% subset(YEAR>2005) %>%
+  dplyr::mutate(FAMILY_CARE_CAT = ifelse(`WORK_EDU_HRS`==0, 'Mother Provides Childcare',ifelse(`FAMILY_CARE`==1,'Family Provided Childcare',ifelse(FORMAL_CHILDCARE==1, 'Formal Childcare Options', 'Other Childcare Options'))))  %>%
+  dplyr::group_by(YEAR,FAMILY_CARE_CAT) %>% mutate(Mean_Maternal_Age = mean(MOTHER_AGE_FIRST_CHILD)) %>% ungroup() %>%
+  dplyr::group_by(YEAR) %>% mutate(Overall_Mean_Maternal_Age = mean(MOTHER_AGE_FIRST_CHILD)) %>% ungroup() %>% 
   group_by(YEAR,Mean_Maternal_Age,Overall_Mean_Maternal_Age,FAMILY_CARE_CAT) %>% dplyr::summarize() 
 
 mean_maternal_ages
@@ -443,23 +442,35 @@ mean_maternal_ages %>%
   theme_ipsum(base_size = 12, axis_title_size = 14) +
   scale_color_futurama(alpha = 0.75) +
     theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
         labs(title = '', color = 'Response') +    
-    scale_x_discrete(limits=c(2010,2015)) +
-    labs(linetype = "Relative-Provided Childcare", color = "Relative-Provided Childcare",
-         y="Mean Age", x = "", title = "")
+    scale_x_continuous(limits=c(2006,2016)) +
+    ylim(20,33) +
+    labs(linetype = "Primary Type of Childcare", color = "Primary Type of Childcare",
+         y="Age", x = "Survey Year", title = "Average Age", subtitle = "When first child is born")
 
+NLSY_Valid_Childcare_Income_One_Child %>% dplyr::select(PUBID_1997,YEAR,WORK_EDU_HRS,FAMILY_CARE,MOTHER_AGE_FIRST_CHILD,FORMAL_CHILDCARE) %>% subset(YEAR>2005) %>%
+  dplyr::mutate(FAMILY_CARE_CAT = ifelse(`WORK_EDU_HRS`==0, 'Mother Provides Childcare',ifelse(`FAMILY_CARE`==1,'Family Provided Childcare',ifelse(FORMAL_CHILDCARE==1, 'Formal Childcare Options', 'Other Childcare Options'))))  %>%
+  ggplot(aes(x =MOTHER_AGE_FIRST_CHILD ,y=FAMILY_CARE_CAT)) +
+  geom_boxplot(aes(color = FAMILY_CARE_CAT))+theme_ipsum(base_size = 12, axis_title_size = 14) +
+  scale_color_futurama(alpha = 0.75) +
+    theme(
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+      axis.text.y=element_blank()
+      ) +
+    labs(linetype = "Primary Type of Childcare", color = "Primary Type of Childcare",
+         y="", x = "Age", title = "Average Age", subtitle = "When first child is born")
+  
 ```
 The increasing age makes sense as we are following a cohort of respondents starting at a certain average age. However, within these respondents, there was not a big difference between average age of mothers within different childcare provision options (stay at home mothers seem to be a bit older on average than other). 
 
-##### Across Socioeconomic Statuses
+### Childcare breakdown by socioeconomic status 
 
 Here, I did look through maternal ages (average) over the years and across socioeconomic classes, noting that socioeconomic class here are determined with CV_INCOME_FAMILY, using income metrics approximated from the Balance Article using approximations from the Pew Research Center [2]. 
 
 ```{r}
-ses_care_type <-  NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,MARRIED_OR_COHABITATING,INCOME,WORK_EDU_HRS,CV_INCOME_FAMILY,FAMILY_CARE,MATERNAL_AGE) %>% subset(YEAR>2005) %>%
+NLSY_Valid_Childcare_Income_2 = NLSY_Valid_Childcare_Income_2[!is.na(NLSY_Valid_Childcare_Income_2$CV_INCOME_FAMILY),]
+ses_care_type <-  NLSY_Valid_Childcare_Income_2 %>% dplyr::select(PUBID_1997,YEAR,MARRIED_OR_COHABITATING,INCOME,WORK_EDU_HRS,CV_INCOME_FAMILY,FAMILY_CARE,MATERNAL_AGE,FORMAL_CHILDCARE) %>% subset(YEAR>2005) %>%
   dplyr::mutate(SES = ifelse(
     #MARRIED_OR_COHABITATING == 1, ifelse(
     CV_INCOME_FAMILY < 45000,'Lower-Class',
@@ -467,7 +478,7 @@ ses_care_type <-  NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,MARRI
     #,ifelse(INCOME < 15000,'Lower-Class',
     # ifelse(CV_INCOME_FAMILY < 75000, 'Middle-Class','Upper-Class')))) 
     ) %>% 
-    dplyr::mutate(FAMILY_CARE_CAT = ifelse(`WORK_EDU_HRS`==0, 'No (Mother Provides Childcare)',ifelse(`FAMILY_CARE`==1,'Yes',ifelse(FAMILY_CARE==0,'No (Other Childcare)',NaN)))) %>%
+    dplyr::mutate(FAMILY_CARE_CAT = ifelse(`WORK_EDU_HRS`==0, 'Mother Provides Childcare',ifelse(`FAMILY_CARE`==1,'Family Provided Childcare',ifelse(FORMAL_CHILDCARE==1, 'Formal Childcare Options', 'Other Childcare Options')))) %>%
   dplyr::group_by(SES) %>% mutate(SES_TOT = n()) %>% ungroup() %>% 
   dplyr::group_by(SES,FAMILY_CARE_CAT) %>% mutate(CARE_TOT = n()) %>% ungroup() %>%
     mutate(CARE_PROP = CARE_TOT/SES_TOT) %>% ungroup() %>% 
@@ -486,65 +497,10 @@ ses_care_type %>%
       axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
         labs(title = '', color = 'Response') +    
     labs(linetype = "Socioeconomic Status", color = "Child Care Category", fill = "Child Care Category", 
-         y="Proportion", x = "Socioeconomic Status (household income)", title = "Do richer people have more paid childcare? ")
+         y="Proportion", x = "Socioeconomic Status (household income)", title = "Social Class and Childcare Options")
 ```
   
 On average, each year's mean maternal age (with first child) appears to be higher for upper classes vs for lower classes. 
-
-
-```{r}
-mean_maternal_ages_ses <-  NLSY_Valid_Childcare_1 %>% dplyr::select(PUBID_1997,YEAR,MARRIED_OR_COHABITATING,INCOME,CV_INCOME_FAMILY,FAMILY_CARE,MATERNAL_AGE) %>% subset(YEAR>2005) %>%
-  dplyr::mutate(SES = ifelse(
-    #MARRIED_OR_COHABITATING == 1, ifelse(
-    CV_INCOME_FAMILY < 45000,'Lower-Class',
-    ifelse(CV_INCOME_FAMILY < 135000, 'Middle-Class','Upper-Class'))
-    #,ifelse(INCOME < 15000,'Lower-Class',
-    # ifelse(CV_INCOME_FAMILY < 75000, 'Middle-Class','Upper-Class')))) 
-    ) %>% 
-  group_by(YEAR,SES) %>% mutate(Mean_Maternal_Age = mean(MATERNAL_AGE)) %>% ungroup() %>% 
-  dplyr::group_by(YEAR) %>% mutate(Overall_Mean_Maternal_Age = mean(MATERNAL_AGE)) %>% ungroup() %>% 
-  group_by(YEAR,Mean_Maternal_Age,Overall_Mean_Maternal_Age,SES) %>% dplyr::summarize() 
-
-mean_maternal_ages_ses %>%
-  ggplot(aes(x = YEAR)) +
-  geom_point(stat="identity",aes(y=Mean_Maternal_Age,color = SES)) +
-  geom_line(stat="identity",aes(y=Mean_Maternal_Age,color = SES)) +
-  geom_point(stat="identity",aes(y=Overall_Mean_Maternal_Age), alpha = 0.5) +
-  geom_line(stat="identity",aes(y=Overall_Mean_Maternal_Age), linetype = 'dashed', alpha = 0.5) +
-  theme_ipsum(base_size = 12, axis_title_size = 14) +
-  scale_color_futurama(alpha = 0.75) +
-    theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-        labs(title = '', color = 'Response') +    
-    scale_x_continuous(limits=c(2010,2015)) +
-    labs(linetype = "Socioeconomic Status", color = "Socioeconomic Status",
-         y="Mean Age", x = "", title = "")
-```
-
-
-```{r, echo=FALSE, eval=FALSE, message=FALSE, warning=FALSE}
-# Load Data - Pre-cleaned 
-NLSY_79 <- read.csv("~/QMSS/Intergenerational_Maternal_Wage_Gap/data/NLSY79/NLSY79_continuous.csv")
-
-colnames(NLSY_79)
-
-describe(NLSY_79)
-```
-
-```{r, echo=FALSE, eval=FALSE, message=FALSE, warning=FALSE}
-# Step 1. Filter for Women Only  
-NLSY_79 <- NLSY_79 %>% subset(SAMPLE_SEX == 2)
-# Step 2. Filling for 'Missing' Data 
-
-NLSY_79_children <- NLSY_79 %>% subset(NUMCH > 0)
-  # 2b. For number of children in the household, I will fill items with nan in the middle (by person across time); as most nan meant 'does not apply (i.e., no children) I changed this variable to 0.
-
-# Step 3. Now I select the relevant columns and filter for individuals with valid data about their education. 
-
-# Step 4. For potential later interpretation in this lab I am also going to filter only for individuals with HS level of education and above. 
-```
 
 ---
 
