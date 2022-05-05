@@ -8,8 +8,9 @@ The models within this project examines the relationship between availability of
 	    	# Rmd and formatted outputs to add basic exploratory visualization 
 	├── results/
 	# Rmd and formatted outputs for final models 
+	
 	├── Data/
-    	# .RData format NLSY97 data in person year format; used to run models
+	# .RData format NLSY97 data in person year format; used to run models
 
   
 ## Key Deliverables
