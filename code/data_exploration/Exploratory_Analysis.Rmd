@@ -3,9 +3,9 @@ title: "Exploratory_Analysis"
 author: "Connie Xu"
 date: "Spring 2022"
 output:
-  html_document:
-    df_print: paged
-    keep_md: yes
+  md_document:
+    variant: markdown_github
+always_allow_html: true
 ---
 
 
