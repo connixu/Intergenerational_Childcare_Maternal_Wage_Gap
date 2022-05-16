@@ -15,7 +15,7 @@ The models within this project examines the relationship between availability of
   
 ## Key Deliverables
 ### Written Report 
-* [Thesis](https://www.overleaf.com/project/6188da441ee7dab092b4ef80)
+* [Thesis](https://github.com/connixu/Intergenerational_Childcare_Maternal_Wage_Gap/blob/main/report_drafts/Thesis_Draft.pdf)
 
 ### Supporting Code 
 * [NLSY97_Preprocessing_1.R](https://github.com/connixu/Intergenerational_Childcare_Maternal_Wage_Gap/blob/main/code/data_cleaning/NLSY97_Preprocessing_1.R): Reads in data and reshapes to PUBID-Year Format 
