@@ -3,9 +3,9 @@ title: "Exploratory_Analysis"
 author: "Connie Xu"
 date: "Spring 2022"
 output:
-  md_document:
-    variant: markdown_github
-always_allow_html: true
+  html_document:
+    df_print: paged
+    keep_md: yes
 ---
 
 
@@ -84,7 +84,7 @@ NLSY_Valid_Childcare_Income_1 <- Valid_Childcare(NLSY_imputed,TRUE) %>% subset(I
 NLSY_Valid_Childcare_Part_Time_One_Child <- NLSY_Valid_Childcare_Part_Time_1 %>% subset(N_CHILDREN==1) 
 NLSY_Valid_Childcare_Income_One_Child <- NLSY_Valid_Childcare_Income_1 %>% subset(N_CHILDREN==1) 
 
-psych::describe(NLSY_Valid_Childcare_Part_Time_One_Child %>% select(INCOME, MARRIED_OR_COHABITATING, BA_ABOVE,SPOUSAL_INCOME, MOTHER_AGE_FIRST_CHILD, MATERNAL_AGE,`YCCAL-6800`,FAMILY_CARE, N_CHILDREN,FULL_TIME,Relative_within_15_minutes))
+psych::describe(NLSY_Valid_Childcare_Part_Time_One_Child %>% subset(FAMILY_CARE ==1) %>%  select(INCOME, CV_INCOME_FAMILY, CV_HGC_EVER_EDT,SPOUSAL_INCOME, MOTHER_AGE_FIRST_CHILD, MATERNAL_AGE,`YCCAL-6800`,WORK_EDU_HRS, N_CHILDREN,Relative_within_15_minutes))
 ```
 
 | Variable Name  | Variable Text | Values  |
@@ -325,16 +325,16 @@ load("~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_imputed.RDa
 
 # No filtering for only individuals with valid data around inter-generational childcare 
 NLSY_Valid <-  NLSY_imputed %>% 
-filter(CV_HGC_EVER_EDT != 95 & !is.na(CV_HGC_EVER_EDT)) %>% 
-filter(BA_ABOVE== 1) 
+filter(CV_HGC_EVER_EDT != 95 & !is.na(CV_HGC_EVER_EDT)) %>% group_by(PUBID_1997) %>% mutate(max_education = max(CV_HGC_EVER_EDT)) %>% ungroup() %>% subset(max_education == CV_HGC_EVER_EDT)
 NSLY_Valid_Summarized <- NLSY_Valid %>% dplyr::mutate(ANY_CHILDREN = ifelse(N_CHILDREN == 0,0,1)) %>% group_by(YEAR,ANY_CHILDREN) %>% dplyr::summarize(mean_income = mean(INCOME,na.rm=TRUE)) %>% mutate(ANY_CHILDREN = ifelse(ANY_CHILDREN==0,'No Children', 'One or More Children')) 
 NSLY_Valid_Summarized
 NSLY_Valid_Summarized$YEAR <- as.numeric(NSLY_Valid_Summarized$YEAR)
 
 NSLY_Valid_Summarized %>% 
   ggplot(.,aes(x=YEAR, y=mean_income/1000)) +
-  geom_point(color = "#273237") + 
-  geom_line(color = "#273237",aes(linetype = ANY_CHILDREN)) + 
+  geom_point(aes(color = ANY_CHILDREN)) + 
+  geom_line(aes(color = ANY_CHILDREN)) + 
+  scale_color_manual(values = c("#ffb000","#002728")) + 
   theme_ipsum(base_size = 12, axis_title_size = 14) +
     theme(
 

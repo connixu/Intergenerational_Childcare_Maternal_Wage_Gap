@@ -1,132 +1,331 @@
-# R Script to preprocess, filter, and infer missing data as needed. 
+# R Script to run statistical models
 
-load("~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_new_shortened.RData")
+## ----load libraries, echo=FALSE, message=FALSE, warnings=FALSE----------------------------------------------------------------------
+library(plm)
+library(dplyr)
+library(plyr)
+library(QMSS)
+library(tidyverse)
+library(stargazer)
+library(psych)
+library(ggplot2)
+library(ggthemes)
+library(ggsci)
+library(viridis)
+library(hrbrthemes)
+library(imputeTS)
+library(kableExtra)
+library(naniar)
+library(plotly)
+library(DT)
+library(tidyr)
+library(Hmisc)
 
-# Step 1. Filter for Women Only  
-NLSY <- NLSY_new_shortened %>% subset(KEY_SEX_1997 == 2)
-
-# Step 2. Intergenerational Childcare - take the max (0-1) response across children where women have multiple children. 
-# COMMENT OUT if only one child is being considered for model.
-NLSY$`YCCAL-1100A~000001` <- pmax(NLSY$`YCCAL-1100A.01~000001`,NLSY$`YCCAL-1100A.02~000001`,NLSY$`YCCAL-1100A.03~000001`,NLSY$`YCCAL-1100A.04~000001`,NLSY$`YCCAL-1100A.05~000002`,  na.rm = TRUE)
-NLSY$`YCCAL-1100A~000002` <- pmax(NLSY$`YCCAL-1100A.01~000002`,NLSY$`YCCAL-1100A.02~000002`,NLSY$`YCCAL-1100A.03~000002`,NLSY$`YCCAL-1100A.04~000002`,NLSY$`YCCAL-1100A.05~000002`,  na.rm = TRUE)
-NLSY$`YCCAL-1100A~000003` <- pmax(NLSY$`YCCAL-1100A.01~000003`,NLSY$`YCCAL-1100A.02~000003`,NLSY$`YCCAL-1100A.03~000003`,NLSY$`YCCAL-1100A.04~000003`,NLSY$`YCCAL-1100A.05~000003`,  na.rm = TRUE)
-NLSY$`YCCAL-1100A~000004` <- pmax(NLSY$`YCCAL-1100A.01~000004`,NLSY$`YCCAL-1100A.02~000004`,NLSY$`YCCAL-1100A.03~000004`,NLSY$`YCCAL-1100A.04~000004`,NLSY$`YCCAL-1100A.05~000004`,  na.rm = TRUE)
-NLSY$`YCCAL-1100A~000005` <- pmax(NLSY$`YCCAL-1100A.01~000005`,NLSY$`YCCAL-1100A.02~000005`,NLSY$`YCCAL-1100A.03~000005`,NLSY$`YCCAL-1100A.04~000005`,NLSY$`YCCAL-1100A.05~000005`,  na.rm = TRUE)
-NLSY$`YCCAL-1100A~000006` <- pmax(NLSY$`YCCAL-1100A.01~000006`,NLSY$`YCCAL-1100A.02~000006`,NLSY$`YCCAL-1100A.03~000006`,NLSY$`YCCAL-1100A.04~000006`,NLSY$`YCCAL-1100A.05~000006`,  na.rm = TRUE)
-NLSY$`YCCAL-1100A~000007` <- pmax(NLSY$`YCCAL-1100A.01~000007`,NLSY$`YCCAL-1100A.02~000007`,NLSY$`YCCAL-1100A.03~000007`,NLSY$`YCCAL-1100A.04~000007`,NLSY$`YCCAL-1100A.05~000007`,  na.rm = TRUE)
-NLSY$`YCCAL-1100A~000008` <- pmax(NLSY$`YCCAL-1100A.01~000008`,NLSY$`YCCAL-1100A.02~000008`,NLSY$`YCCAL-1100A.03~000008`,NLSY$`YCCAL-1100A.04~000008`,NLSY$`YCCAL-1100A.05~000008`,  na.rm = TRUE)
-NLSY$`YCCAL-1100A~000009` <- pmax(NLSY$`YCCAL-1100A.01~000009`,NLSY$`YCCAL-1100A.02~000009`,NLSY$`YCCAL-1100A.03~000009`,NLSY$`YCCAL-1100A.04~000009`,NLSY$`YCCAL-1100A.05~000009`,  na.rm = TRUE)
-
-# COMMENT OUT if multiple children  is being considered for model. 
-# NLSY$`YCCAL-1100A~000001` <- NLSY$`YCCAL-1100A.01~000001`
-# NLSY$`YCCAL-1100A~000002` <- NLSY$`YCCAL-1100A.01~000002`
-# NLSY$`YCCAL-1100A~000003` <- NLSY$`YCCAL-1100A.01~000003`
-# NLSY$`YCCAL-1100A~000004` <- NLSY$`YCCAL-1100A.01~000004`
-# NLSY$`YCCAL-1100A~000005` <- NLSY$`YCCAL-1100A.01~000005`
-# NLSY$`YCCAL-1100A~000006` <- NLSY$`YCCAL-1100A.01~000006`
-# NLSY$`YCCAL-1100A~000007` <- NLSY$`YCCAL-1100A.01~000007`
-# NLSY$`YCCAL-1100A~000008` <- NLSY$`YCCAL-1100A.01~000008`
-# NLSY$`YCCAL-1100A~000009` <- NLSY$`YCCAL-1100A.01~000009`
-
-NLSY$YEAR <- as.numeric(NLSY$YEAR)
-NLSY$KEY_BDATE_Y_1997 <- as.numeric(NLSY$KEY_BDATE_Y_1997)
-
-# Step 3. Filling for 'Missing' Data 
-NLSY_imputed <- NLSY %>% 
-  # 3a. YINC 1400 asks whether the individual generated income at all; thus I am making another variable that imputes the continuous variable YINC 1700 with 0 where 1400 is 0.  
-  dplyr::mutate(INCOME = ifelse((is.na(`YINC-1700`) & (`YINC-1400` == 0)), 0, `YINC-1700`)) %>%
-  # 3b. YINC 2600 incudes question about spousal income - here, I impute all na as 0.
-  dplyr::mutate(SPOUSAL_INCOME = ifelse(is.na(`YINC-2600`), 0, `YINC-2600`)) %>%
-  # 3c. For number of children in the household, I will fill items with nan in the middle (by person across time); as most nan meant 'does not apply (i.e., no children) I changed this variable to 0.
-  dplyr::mutate(N_CHILDREN = ifelse(is.na(CV_BIO_CHILD_HH),0,CV_BIO_CHILD_HH)) %>% 
-  
-  # 3d. Add identity variables (birthdate, citizenship).
-  dplyr::mutate(CV_CITIZENSHIP = 
-                  ifelse(CV_CITIZENSHIP == 1, 1, ifelse(CV_CITIZENSHIP == 2, 0, NA))) %>%
-  dplyr::group_by(PUBID_1997) %>% 
-  dplyr::mutate(KEY_BDATE_Y_1997 = max(KEY_BDATE_Y_1997)) %>% 
-  dplyr::mutate(CV_CITIZENSHIP = ifelse(!all(is.na(CV_CITIZENSHIP)), max(CV_CITIZENSHIP, na.rm=T), NA)) %>% 
-  ungroup() %>% 
-  
-  # 3c. For individuals with children, questions about childcare, intergenerational childcare, and spousal childcare appear to be divided between earlier and later cohorts; 
-  dplyr::mutate(FIRST_CHILD_BDATE = ifelse(is.na(`BIOADOPTCHILD_BDATE.01~Y`),`BIOCHILD_BDATE.01~Y`, `BIOADOPTCHILD_BDATE.01~Y`)) %>% 
-  dplyr::mutate(WORK_EDU_HRS = 
-                  ifelse(is.na(`YCCA-450`),`YCCAL-450`,`YCCA-450`)) %>% 
-  dplyr::mutate(SPOUSAL_CHILDCARE =
-                  ifelse(is.na(`YCCAL-1100A~000001`),ifelse(is.na(`YCCA-1100A~000001`),ifelse(WORK_EDU_HRS == 0,0,NaN),`YCCA-1100A~000001`),`YCCAL-1100A~000001`)) %>%
-  dplyr::mutate(RELATIVE_CARE =
-                  ifelse(is.na(`YCCAL-1100A~000002`),ifelse(is.na(`YCCA-1100A~000002`),ifelse(WORK_EDU_HRS == 0,0,NaN),`YCCA-1100A~000002`),`YCCAL-1100A~000002`)) %>%
-  dplyr::mutate(SIBLING_CARE =
-                  ifelse(is.na(`YCCAL-1100A~000003`),ifelse(is.na(`YCCA-1100A~000003`),ifelse(WORK_EDU_HRS == 0,0,NaN),`YCCA-1100A~000003`),`YCCAL-1100A~000003`)) %>%
-  dplyr::mutate(SELF_CARE =
-                  ifelse(is.na(`YCCAL-1100A~000004`),ifelse(is.na(`YCCA-1100A~000004`),ifelse(WORK_EDU_HRS == 0,0,NaN),`YCCA-1100A~000004`),`YCCAL-1100A~000004`)) %>%
-  dplyr::mutate(NON_RELATIVE_CARE =
-                  ifelse(is.na(`YCCAL-1100A~000005`),ifelse(is.na(`YCCA-1100A~000005`),ifelse(WORK_EDU_HRS == 0,0,NaN),`YCCA-1100A~000005`),`YCCAL-1100A~000005`)) %>%
-  dplyr::mutate(FAMILY_DAY_CARE =
-                  ifelse(is.na(`YCCAL-1100A~000006`),
-                         ifelse(is.na(`YCCA-1100A~000006`),ifelse(WORK_EDU_HRS == 0,0,
-                                                                  ifelse(!is.null(`YCCAL-1100A~000002`),0,NaN)),
-                                `YCCA-1100A~000006`),`YCCAL-1100A~000006`)) %>%
-  dplyr::mutate(CHILDCARE_CENTER =
-                  ifelse(is.na(`YCCAL-1100A~000007`),ifelse(is.na(`YCCA-1100A~000007`),ifelse(WORK_EDU_HRS == 0,0,NaN),`YCCA-1100A~000007`),`YCCAL-1100A~000007`)) %>%
-  dplyr::mutate(FORMAL_SCHOOL =
-                  ifelse(is.na(`YCCAL-1100A~000008`),ifelse(is.na(`YCCA-1100A~000008`),ifelse(WORK_EDU_HRS == 0,0,NaN),`YCCA-1100A~000008`),`YCCAL-1100A~000008`)) %>%
-  dplyr::mutate(AFTER_SCHOOL_CARE =
-                  ifelse(is.na(`YCCAL-1100A~000009`),ifelse(is.na(`YCCA-1100A~000009`),ifelse(WORK_EDU_HRS == 0,0,NaN),`YCCA-1100A~000009`),`YCCAL-1100A~000009`)) %>%
-  # dplyr::mutate(SPOUSAL_CHILDCARE =  
-  #               ifelse(is.na(`YCCAL-1100A~000001`),`YCCA-1100A~000001`,`YCCAL-1100A~000001`)) %>% 
-  # dplyr::mutate(RELATIVE_CARE =
-  #                 ifelse(is.na(`YCCAL-1100A~000002`),`YCCA-1100A~000002`,`YCCAL-1100A~000002`)) %>%   
-  # dplyr::mutate(SIBLING_CARE =
-  #                 ifelse(is.na(`YCCAL-1100A~000003`),`YCCA-1100A~000003`,`YCCAL-1100A~000003`)) %>%  
-  # dplyr::mutate(SELF_CARE =
-  #                 ifelse(is.na(`YCCAL-1100A~000004`),`YCCA-1100A~000004`,`YCCAL-1100A~000004`)) %>%   
-  # dplyr::mutate(NON_RELATIVE_CARE =
-  #                 ifelse(is.na(`YCCAL-1100A~000005`),`YCCA-1100A~000005`,`YCCAL-1100A~000005`)) %>%   
-  # dplyr::mutate(FAMILY_DAY_CARE =
-#                 ifelse(is.na(`YCCAL-1100A~000006`),`YCCA-1100A~000006`,`YCCAL-1100A~000006`)) %>%   
-# dplyr::mutate(CHILDCARE_CENTER = 
-#                 ifelse(is.na(`YCCAL-1100A~000007`),`YCCA-1100A~000007`,`YCCAL-1100A~000007`)) %>% 
-# dplyr::mutate(FORMAL_SCHOOL = 
-#                 ifelse(is.na(`YCCAL-1100A~000008`),`YCCA-1100A~000008`,`YCCAL-1100A~000008`)) %>% 
-# dplyr::mutate(AFTER_SCHOOL_CARE =
-#                 ifelse(is.na(`YCCAL-1100A~000009`),`YCCA-1100A~000009`,`YCCAL-1100A~000009`)) %>% 
-# Step 4. Adding columns for our variables of interest - types of childcare, age first mother 
-dplyr::mutate(FAMILY_CARE = ifelse((RELATIVE_CARE ==1) | (SIBLING_CARE==1) | (FAMILY_DAY_CARE ==1),1,0)) %>%
-  dplyr::mutate(FORMAL_CHILDCARE = ifelse((CHILDCARE_CENTER ==1) | (FORMAL_SCHOOL==1) | (AFTER_SCHOOL_CARE ==1),1,0)) %>%
-  dplyr::mutate(CHILDCARE_TYPE = ifelse(FORMAL_CHILDCARE > 0 & FAMILY_CARE > 0, 'Both', ifelse(FORMAL_CHILDCARE > 0, 'Formal', ifelse(FAMILY_CARE > 0 | NON_RELATIVE_CARE > 0, 'Informal', ifelse(SPOUSAL_CHILDCARE,'Spouse','Self'))))) %>%
-  dplyr::mutate(MATERNAL_AGE = YEAR - KEY_BDATE_Y_1997) %>% 
-  dplyr::mutate(MOTHER_AGE_FIRST_CHILD = FIRST_CHILD_BDATE - KEY_BDATE_Y_1997) %>% 
-  dplyr::mutate(BIOCHILD_6_YR = FIRST_CHILD_BDATE + 5) %>% 
-  dplyr::group_by(PUBID_1997) %>% 
-  #dplyr::mutate(MATERNAL_AGE = ifelse(!all(is.na(MATERNAL_AGE)), max(MATERNAL_AGE, na.rm=T), NA)) %>% 
-  ungroup() %>% 
-  
-  # Step 5. Recoding existent variables into binary 
-  dplyr::mutate(MARRIED_OR_COHABITATING = 
-                  ifelse(MAR_STATUS.12_XRND == 2 | MAR_STATUS.12_XRND == 1, 1, 0)) %>% 
-  dplyr::mutate(FULL_TIME = 
-                  ifelse(WORK_EDU_HRS>=32,1,ifelse(WORK_EDU_HRS>=0,0,NA))) %>% 
-  dplyr::mutate(PART_TIME = 
-                  ifelse(WORK_EDU_HRS>=20,1,ifelse(WORK_EDU_HRS>=0,0,NA))) %>%
-  dplyr::mutate(ANY_CHILDREN = ifelse(N_CHILDREN == 0,0,1)) %>% 
-  dplyr::mutate(BA_ABOVE = ifelse(CV_HGC_EVER_EDT>=16,1,0)) %>% 
-  dplyr::mutate(RELATIVE_CARE_CAT = ifelse(`RELATIVE_CARE`== 0, 'No',ifelse(`RELATIVE_CARE`== 1,'Yes',NA))) %>% 
-  dplyr::mutate(Relative_within_15_minutes = ifelse(`YCCAL-6800`==1, ' - Yes',ifelse(`YCCAL-6800`==0,' - No','NaN')))
+## ----final filtering functions, echo=FALSE----------------------------------------------------------------------------------------------------------
+# Select relevant columns and filter for individuals with valid data about their education,
+ # filter for women with some income generating work; filter for High School +
+ Valid_Data <- function(df) {
+   NLSY_Valid <-  df %>% 
+     filter(CV_HGC_EVER_EDT != 95 & !is.na(CV_HGC_EVER_EDT)) %>% 
+     filter(CV_HGC_EVER_EDT = 12) %>% filter(YEAR=2005)
+   }
+# Make df that includes ALL working women with valid data about childcare
+ Valid_Childcare <- function(df,first_child) {
+   NLSY_Valid <- Valid_Data(df)
+   NLSY_Valid_Childcare <- NLSY_Valid %>% subset(INCOME0) %>% subset(WORK_EDU_HRS=0) %>% 
+     subset(WORK_EDU_HRS != 999) %>% 
+     subset(SELF_CARE==0) %>%  subset(YEAR <= BIOCHILD_6_YR)
+   if(first_child == TRUE) {
+     NLSY_Valid_Childcare <- NLSY_Valid_Childcare %>%  subset(YEAR <= BIOCHILD_6_YR)
+     }
+   else{
+     NLSY_Valid_Childcare <- NLSY_Valid_Childcare %>%  subset(CV_HH_UNDER_60)
+     }
+   }
+# Filter for data that includes working women (Part Time and up) with valid data about childcare
+ Valid_Childcare_Income <- function(df,first_child) {
+   NLSY_Valid_Childcare <- Valid_Childcare(df,first_child)
+   NLSY_Valid_Childcare_Income <- NLSY_Valid_Childcare %>%  subset(INCOME0) %>%  subset(PART_TIME==1)
+   }
 
 
-# Step 6 . Recode YEAR as numeric 
-NLSY_imputed$YEAR <- as.numeric(NLSY_imputed$YEAR)
 
-# Step 7. Log Income
-NLSY_imputed$INCOME_LOG <- log(NLSY_imputed$INCOME+1)
-NLSY_imputed$CV_INCOME_FAMILY_LOG <- log(NLSY_imputed$CV_INCOME_FAMILY+1)
-NLSY_imputed$SPOUSAL_INCOME_LOG <- log(NLSY_imputed$SPOUSAL_INCOME+1)
-colnames(NLSY_imputed)
-# COMMENT OUT if looking at multiple children
-# save(NLSY_imputed, file = "~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_imputed_first_child.RData")
+## ----load datasets------------------------------------------------------------------------------------------------------------------
+# Childcare Variables here are averaged across children (YCCAL), looking at ANY child of respondent under 6
+load("~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_imputed.RData")
+NLSY_Valid_Childcare_Part_Time_2 <- Valid_Childcare_Income(NLSY_imputed,FALSE) # Part Time and Above
+NLSY_Valid_Childcare_Income_2 <- Valid_Childcare(NLSY_imputed,FALSE) %>%  subset(INCOME > 0) # Any Income Generated
+NLSY_Valid_Childcare_Part_Time_2 <- NLSY_Valid_Childcare_Part_Time_2[!is.na(NLSY_Valid_Childcare_Part_Time_2$FAMILY_CARE), ]
+# Childcare Variables here are averaged across children (YCCAL), looking at respondents while their first child is under 6 years old
+ load("~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_imputed_first_child.RData")
+NLSY_Valid_Childcare_Part_Time_1 <- Valid_Childcare_Income(NLSY_imputed,TRUE)
+NLSY_Valid_Childcare_Part_Time_1 <- NLSY_Valid_Childcare_Part_Time_1[!is.na(NLSY_Valid_Childcare_Part_Time_1$FAMILY_CARE), ]
+NLSY_Valid_Childcare_Income_1 <- Valid_Childcare(NLSY_imputed,TRUE) %>%  subset(INCOME > 0)
+# Only looking at parent having one child (first child) - while their first child is under 6 years old
+ NLSY_Valid_Childcare_Part_Time_One_Child <- NLSY_Valid_Childcare_Part_Time_1 %>%  subset(N_CHILDREN==1)
+NLSY_Valid_Childcare_Income_One_Child <- NLSY_Valid_Childcare_Income_1 %>%  subset(N_CHILDREN==1)
+# Run descriptive table about model columns
+ psych::describe(NLSY_Valid_Childcare_Part_Time_One_Child %>%  select(INCOME, MARRIED_OR_COHABITATING, BA_ABOVE,SPOUSAL_INCOME, MOTHER_AGE_FIRST_CHILD, MATERNAL_AGE,`YCCAL-6800`,FAMILY_CARE, N_CHILDREN,FULL_TIME,Relative_within_15_minutes,YEAR))
 
-# COMMENT OUT if only looking at first child 
-save(NLSY_imputed, file = "~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_imputed.RData")
+ 
+ 
+# -- Relative-Provided Childcare vs Income (basic, no controls) ----------------------------------------------------------------------
+## ----fe.basic_part_time, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8---------
+fe.basic_part_time <- plm(INCOME_LOG ~ FAMILY_CARE + as.factor(YEAR),
+                          index = c("PUBID_1997", "YEAR"), # id & time variables
+                          model = "within",
+                          data = NLSY_Valid_Childcare_Part_Time_One_Child)
+# summary(fe.basic_part_time)
+ ## ----re.basic_part_time, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8---------
+re.basic_part_time  <- plm(INCOME_LOG ~ FAMILY_CARE + as.factor(YEAR), # model formula
+                           index = c("PUBID_1997", "YEAR"),
+                           model = "random",
+                           data = NLSY_Valid_Childcare_Part_Time_One_Child)
+# summary(re.basic_part_time)
+ ## ----pooled.basic_part_time, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8-----
+pooled.basic_part_time <- plm(INCOME_LOG ~ FAMILY_CARE + as.factor(YEAR),
+                              index = c("PUBID_1997", "YEAR"),
+                              model = "pooling",
+                              data = NLSY_Valid_Childcare_Part_Time_One_Child)
+# summary(pooled.basic_part_time)
+ ## ----stargazer.basic_part_time, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8----
+stargazer(fe.basic_part_time, re.basic_part_time, pooled.basic_part_time,
+          title="Regression Results",
+          align=TRUE,
+          dep.var.labels=c("Income"),
+          no.space=TRUE,
+          column.labels=c("Fixed Effects", "Random Effects", "Pooled"),
+          dep.var.caption="",
+          model.numbers=FALSE,
+          #type = "latex",
+            type = "text",
+          omit = "Constant")
 
 
+# -- Relative-Provided Childcare vs Income (with controls) ----------------------------------------------------------------------
+## ----fe.part_time_full, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8----------
+fe.part_time_full <- plm(INCOME_LOG ~ FAMILY_CARE + MARRIED_OR_COHABITATING + BA_ABOVE + SPOUSAL_INCOME_LOG + as.factor(YEAR),
+                         index = c("PUBID_1997", "YEAR"), # id & time variables
+                         model = "within",
+                         data = NLSY_Valid_Childcare_Part_Time_One_Child)
+# summary(fe.part_time_full)
+ ## ----re.part_time_full, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE, column.sep.width="1pt", comment=NA, font.size=8---------
+re.part_time_full  <- plm(INCOME_LOG ~ FAMILY_CARE + MARRIED_OR_COHABITATING + BA_ABOVE + SPOUSAL_INCOME_LOG +
+                            + MOTHER_AGE_FIRST_CHILD + as.factor(YEAR),
+                          index = c("PUBID_1997", "YEAR"),
+                          model = "random",
+                          data = NLSY_Valid_Childcare_Part_Time_One_Child)
+# summary(re.part_time_full)
+ ## ----hausmann_test-------------------------------------------------------------------------------------------------------------------
+phtest(fe.part_time_full, re.part_time_full)
+
+## ----pooled.part_time_full, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8------
+pooled.part_time_full <- plm(INCOME_LOG ~ FAMILY_CARE + MARRIED_OR_COHABITATING + BA_ABOVE + MOTHER_AGE_FIRST_CHILD + SPOUSAL_INCOME_LOG + as.factor(YEAR),
+                             index = c("PUBID_1997", "YEAR"),
+                             model = "pooling",
+                             data = NLSY_Valid_Childcare_Part_Time_One_Child)
+#summary(pooled.part_time_full)
+ ## ----stargazer.part_time_full, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8----
+stargazer(fe.part_time_full, re.part_time_full,pooled.part_time_full,
+          title="Regression Results",
+          align=TRUE,
+          dep.var.labels=c("Income"),
+          no.space=TRUE,
+          column.labels=c("Fixed Effects", "Random Effects", "Pooled"),
+          dep.var.caption="",
+          model.numbers=FALSE,
+          #type = "latex",
+            type = "text",
+          omit = "Constant")
+
+
+
+# -- Formal Childcare Options vs Income (with controls) ------------------------------------------------------------------------------
+## ----stargazer.part_time_1_formal, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8----
+fe.part_time_1_formal <- plm(INCOME_LOG ~ FORMAL_CHILDCARE + MARRIED_OR_COHABITATING + BA_ABOVE + as.factor(YEAR) + SPOUSAL_INCOME_LOG,
+                             index = c("PUBID_1997", "YEAR"), # id & time variables
+                             model = "within",
+                             data = NLSY_Valid_Childcare_Part_Time_One_Child)
+re.part_time_1_formal  <- plm(INCOME_LOG ~ FORMAL_CHILDCARE + MARRIED_OR_COHABITATING + BA_ABOVE + SPOUSAL_INCOME_LOG + MOTHER_AGE_FIRST_CHILD + as.factor(YEAR), # model formula
+                              index = c("PUBID_1997", "YEAR"),
+                              model = "random",
+                              data = NLSY_Valid_Childcare_Part_Time_One_Child)
+pooled.part_time_1_formal <- plm(INCOME_LOG ~ FORMAL_CHILDCARE + MARRIED_OR_COHABITATING + BA_ABOVE + SPOUSAL_INCOME_LOG + MOTHER_AGE_FIRST_CHILD +  as.factor(YEAR),
+                                 index = c("PUBID_1997", "YEAR"),
+                                 model = "pooling",
+                                 data = NLSY_Valid_Childcare_Part_Time_One_Child)
+
+stargazer(fe.part_time_1_formal,pooled.part_time_1_formal,
+          title="Regression Results",
+          align=TRUE,
+          dep.var.labels=c("Income"),
+          no.space=TRUE,
+          column.labels=c("Fixed Effects", "Pooled"),
+          dep.var.caption="",
+          model.numbers=FALSE,
+          #type = "latex",
+            type = "text",
+          omit = "Constant")
+
+
+# -- Child care options and odds of full time work -----------------------------------------------------------------------------------
+## ----pooled-logit, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8---------------
+pooled_logit_1 <- glm(FULL_TIME ~ FAMILY_CARE +
+                        + MARRIED_OR_COHABITATING + BA_ABOVE + SPOUSAL_INCOME_LOG + MATERNAL_AGE + as.factor(YEAR),
+                      data = NLSY_Valid_Childcare_Part_Time_One_Child,family="binomial")
+# summary(pooled_logit_1)
+ stargazer(pooled_logit_1,
+            title="Regression Results",
+            align=TRUE,
+            dep.var.labels=c("Income"),
+            no.space=TRUE,
+            dep.var.caption="",
+            model.numbers=FALSE,
+            #type = "latex",
+              type = "text",
+            omit = "Constant")
+
+## ----pooled-logit-formal, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8--------
+pooled_logit_formal <- glm(FULL_TIME ~ FORMAL_CHILDCARE +
+                             + MARRIED_OR_COHABITATING + BA_ABOVE +SPOUSAL_INCOME_LOG + MATERNAL_AGE + as.factor(YEAR),
+                           data = NLSY_Valid_Childcare_Part_Time_One_Child,family="binomial")
+summary(pooled_logit_formal)
+
+
+# Relative Proximity (15 mins) vs logged income
+ ## ----pooled.part_time_5, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8---------
+NLSY_Relative_Avaialability <- NLSY_Valid_Childcare_Part_Time_One_Child[!is.na(NLSY_Valid_Childcare_Part_Time_One_Child$Relative_within_15_minutes), ]
+pooled.relative <- plm(INCOME_LOG ~ Relative_within_15_minutes + MARRIED_OR_COHABITATING + BA_ABOVE + MOTHER_AGE_FIRST_CHILD + SPOUSAL_INCOME_LOG + as.factor(YEAR),
+                       index = c("PUBID_1997", "YEAR"),
+                       model = "pooling",
+                       data = NLSY_Relative_Avaialability)
+# summary(pooled.relative)
+ stargazer(pooled.relative,
+            title="Regression Results",
+            align=TRUE,
+            dep.var.labels=c("Income"),
+            no.space=TRUE,
+            dep.var.caption="",
+            model.numbers=FALSE,
+            #type = "latex",
+              type = "text",
+            omit = "Constant")
+
+## ----relative_availability_pearson, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8-----------
+NLSY_Relative_Avaialability <- NLSY_Relative_Avaialability %>%  dplyr::select(INCOME, MARRIED_OR_COHABITATING, BA_ABOVE,SPOUSAL_INCOME, MOTHER_AGE_FIRST_CHILD, MATERNAL_AGE,`YCCAL-6800`,FAMILY_CARE, N_CHILDREN,FULL_TIME,Relative_within_15_minutes,YEAR)
+NLSY_Relative_Avaialability <- NLSY_Valid_Childcare_Part_Time_One_Child[!is.na(NLSY_Valid_Childcare_Part_Time_One_Child$INCOME), ]
+matrix <- as.matrix(NLSY_Relative_Avaialability %>%  dplyr::select(INCOME, MARRIED_OR_COHABITATING, BA_ABOVE,SPOUSAL_INCOME, MOTHER_AGE_FIRST_CHILD,`YCCAL-6800`,FAMILY_CARE))
+rcorr(matrix,type="pearson")
+           
+
+
+# -- Relative-Provided Childcare Options vs Income (with controls) - women with ANY children 6 and under -----------------------------
+## ----fe.part_time_all, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8-----------
+fe.part_time_all <- plm(INCOME_LOG ~ FAMILY_CARE + N_CHILDREN + MARRIED_OR_COHABITATING + BA_ABOVE + SPOUSAL_INCOME_LOG + as.factor(YEAR),
+                        index = c("PUBID_1997", "YEAR"), # id & time variables
+                        model = "within",
+                        data = NLSY_Valid_Childcare_Part_Time_2)
+# summary(fe.part_time_all)
+## ----re.part_time_all, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8-----------
+re.part_time_all  <- plm(INCOME_LOG ~ FAMILY_CARE + N_CHILDREN + MARRIED_OR_COHABITATING + BA_ABOVE + SPOUSAL_INCOME_LOG +
+                           + MOTHER_AGE_FIRST_CHILD + as.factor(YEAR),
+                         index = c("PUBID_1997", "YEAR"),
+                         model = "random",
+                         data = NLSY_Valid_Childcare_Part_Time_2)
+# summary(re.part_time_all)
+## ----pooled.part_time_all, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8-------
+pooled.part_time_all <- plm(INCOME_LOG ~ FAMILY_CARE + N_CHILDREN +  MARRIED_OR_COHABITATING + BA_ABOVE + MOTHER_AGE_FIRST_CHILD + SPOUSAL_INCOME_LOG + as.factor(YEAR),
+                            index = c("PUBID_1997", "YEAR"),
+                            model = "pooling",
+                            data = NLSY_Valid_Childcare_Part_Time_2)
+# summary(pooled.part_time_all)
+## ----stargazer.part_time_all, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8----
+stargazer(fe.part_time_all, pooled.part_time_all,
+          title="Regression Results",
+          align=TRUE,
+          dep.var.labels=c("Income"),
+          no.space=TRUE,
+          column.labels=c("Fixed Effects", "Random Effects", "Pooled"),
+          dep.var.caption="",
+          model.numbers=FALSE,
+          #type = "latex",
+            type = "text",
+          omit = "Constant")
+
+
+
+# -- Formal Childcare Options vs Income (with controls) - women with ANY children 6 and under -----------------------------
+## ----stargazer.part_time_all_formal, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8----
+fe.part_time_all_formal <- plm(INCOME_LOG ~ FORMAL_CHILDCARE + N_CHILDREN + MARRIED_OR_COHABITATING + BA_ABOVE +
+                                 + SPOUSAL_INCOME_LOG +
+                                 + as.factor(YEAR),
+                               index = c("PUBID_1997", "YEAR"), # id & time variables
+                               model = "within",
+                               data = NLSY_Valid_Childcare_Part_Time_2)
+re.part_time_all_formal  <- plm(INCOME_LOG ~ FORMAL_CHILDCARE + N_CHILDREN + MARRIED_OR_COHABITATING + BA_ABOVE +
+                                  + SPOUSAL_INCOME_LOG +
+                                  + MOTHER_AGE_FIRST_CHILD +
+                                  + as.factor(YEAR), # model formula
+                                index = c("PUBID_1997", "YEAR"),
+                                model = "random",
+                                data = NLSY_Valid_Childcare_Part_Time_2)
+pooled.part_time_all_formal <- plm(INCOME_LOG ~ FORMAL_CHILDCARE +N_CHILDREN+ MARRIED_OR_COHABITATING + BA_ABOVE +
+                                     + SPOUSAL_INCOME_LOG + MOTHER_AGE_FIRST_CHILD +
+                                     + as.factor(YEAR),
+                                   index = c("PUBID_1997", "YEAR"),
+                                   model = "pooling",
+                                   data = NLSY_Valid_Childcare_Part_Time_2)
+stargazer(fe.part_time_all_formal,pooled.part_time_all_formal,
+          title="Regression Results",
+          align=TRUE,
+          dep.var.labels=c("Income"),
+          no.space=TRUE,
+          column.labels=c("Fixed Effects", "Pooled"),
+          dep.var.caption="",
+          model.numbers=FALSE,
+          #type = "latex",
+            type = "text",
+          omit = "Constant")
+
+
+
+# -- Relative-Provided Childcare Options vs Income (with controls) - women with ANY income, ONE child 6 and under---------------------
+## ----fe.all, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8---------------------
+fe.all <- plm(INCOME_LOG ~ FAMILY_CARE + N_CHILDREN + MARRIED_OR_COHABITATING + BA_ABOVE + SPOUSAL_INCOME_LOG + as.factor(YEAR),
+              index = c("PUBID_1997", "YEAR"), # id & time variables
+              model = "within",
+              data = NLSY_Valid_Childcare_Income_One_Child)
+# summary(fe.all)
+ ## ----pooled.all, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8-----------------
+pooled.all <- plm(INCOME_LOG ~ FAMILY_CARE + N_CHILDREN +  MARRIED_OR_COHABITATING + BA_ABOVE + MOTHER_AGE_FIRST_CHILD + SPOUSAL_INCOME_LOG + as.factor(YEAR),
+                  index = c("PUBID_1997", "YEAR"),
+                  model = "pooling",
+                  data = NLSY_Valid_Childcare_Income_One_Child)
+# summary(pooled.all)
+ ## -----------------------------------------------------------------------------------------------------------------------------------
+stargazer(fe.all,pooled.all,
+          title="Regression Results",
+          align=TRUE,
+          dep.var.labels=c("Income"),
+          no.space=TRUE,
+          column.labels=c("Fixed Effects"),
+          dep.var.caption="",
+          model.numbers=FALSE,
+          #type = "latex",
+            type = "text",
+          omit = "Constant")
+
+
+# -- Changes made in childcare mode - ---------------------
+## -----------------------------------------------------------------------------------------------------------------------------------
+# Any income women with one child
+ NLSY_Valid_Childcare_Income_One_Child <-  NLSY_Valid_Childcare_Income_One_Child %>%  arrange(PUBID_1997,YEAR) %>%  group_by(PUBID_1997) %>% 
+mutate(changed_to_relative = ifelse(lag(FAMILY_CARE) == 0 & FAMILY_CARE == 1, 1, 0)) %>%  mutate(ever_changed_to_relative = max(changed_to_relative)) %>%  mutate(changed_to_formal = ifelse(lag(FORMAL_CHILDCARE)==0 & FORMAL_CHILDCARE==1, 1, 0)) %>%  mutate(ever_changed_to_formal = max(changed_to_formal))
+# Part time women with one child
+ NLSY_Valid_Childcare_Part_Time_One_Child <- NLSY_Valid_Childcare_Part_Time_One_Child %>%  arrange(PUBID_1997,YEAR) %>%  group_by(PUBID_1997) %>% 
+mutate(changed_to_relative = ifelse(lag(FAMILY_CARE) == 0 & FAMILY_CARE == 1, 1, 0)) %>%  mutate(ever_changed_to_relative = max(changed_to_relative)) %>%  mutate(changed_to_formal = ifelse(lag(FORMAL_CHILDCARE)==0 & FORMAL_CHILDCARE==1, 1, 0)) %>%  mutate(ever_changed_to_formal = max(changed_to_formal))
+# Descriptive statistics for changing childcare modes
+ psych::describe(NLSY_Valid_Childcare_Part_Time_One_Child %>%  select(PUBID_1997,MATERNAL_AGE,CV_HGC_EVER_EDT,CV_INCOME_FAMILY,WORK_EDU_HRS,ever_changed_to_relative,INCOME) %>%  subset(ever_changed_to_relative == 1))
+
+## ----valid_childcare_pearson, eval=TRUE, echo=TRUE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8-----------
+rcorr(as.matrix(NLSY_Valid_Childcare_Part_Time_2%>%  select(CV_HGC_EVER_EDT,WORK_EDU_HRS,MARRIED_OR_COHABITATING, MOTHER_AGE_FIRST_CHILD,INCOME,SPOUSAL_INCOME,FAMILY_CARE,FORMAL_CHILDCARE,N_CHILDREN)),type="pearson")
