@@ -1,0 +1,535 @@
+---
+title: "Initial_Models_1997"
+author: "Connie Xu"
+date: "Spring 2022"
+output:
+  html_document:
+    df_print: paged
+  pdf_document:
+    keep_tex: yes
+---
+
+# Purpose
+This r markdown file (also rendered as R and md files) includes time series run on the NLSY97 data. I will be doing the following: 
+
+*Note that some results were adapted from work completed in Time Series Labs using the data that I downloaded, cleaned, and processed.* 
+
+```{r load libraries, echo=FALSE, message=FALSE, warnings=FALSE}
+library(plm)
+library(dplyr)
+library(plyr)
+library(QMSS)
+library(tidyverse)
+library(stargazer)
+library(psych)
+library(ggplot2)
+library(ggthemes) 
+library(viridis)
+library(hrbrthemes)
+library(imputeTS)
+library(kableExtra)
+library(naniar)
+```
+
+# Data and Processing 
+My selected dataset is the **NLSY97**. The following are some relevant columns in the data set:  
+
+1 = Spousal or Partner Care
+2 = Relative Care
+3 = Sibling Care
+4 = Self-Care
+5 = Non-relative Care
+6 = Family Day Care
+7 = Child Care Center
+8 = Formal Schooling
+
+| Variable Name  | Variable Text | Values  |
+| --- | --- | --- |
+| PUBID_1997 | Unique Identifier  |  |
+| KEY_SEX_1997 | Sex in 1997  | 1 = Male<br/>2 = Female |
+| KEY_RACE_ETHNICITY_1997 | Race/Ethnicity 1997  |  |
+| KEY_BDATE_M_1997 | Birthday Month | 1-12 |
+| KEY_BDATE_Y_1997 | Birthday YEAR  |  |
+| CV_SAMPLE_TYPE_1997 | Cross Section / Oversample | 1 = Cross Sectional<br/> 0 = Oversample |
+| KEY_RACE_ETHNICITY_1997 | Race / Ethnicity  | 1 = Black<br/>2 = Hispanic<br/>3 =  Mixed Race<br/>4 = Non Black Non Hispanic  |
+| YINC-1400  | Any Income Earned this YEAR? (Binary)  | 0 = No 1 = Yes |
+| YINC-1700 | Income (Continuous) | 0-999999+ |
+| P2-001 | Was Parent 1 Born in US  | 0 - 1  |
+| CV_CITIZENSHIP | U.S. citizenship status based on place of birth. | 1 = Yes, 2= No, 3 = No Response |
+| MAR_STATUS.01_XRND - MAR_STATUS.12_XRND | Marital Status Jan - Dec of Survey YEAR  | 0 = Never Married, Not Cohabitating <br/> 1 = Never Married, Cohabiting<br/> 2 = Married<br/> 3 = Legally Separated <br/> 4 = Divorced<br/> 5 = Widowed |
+| CV_BIO_CHILD_HH | Number of Biological Children RESIDING in the Household (Note: Rs without any biological children are assigned a valid skip (-4).) | 0 - 10+ |
+| CV_HH_UNDER_6 | Number of Childen in R’s household under 6  | 0 - 10+ |
+| CV_BIO_CHILD_NR | Number of Biological Children NOT RESIDING in the Household (Note: Rs without any biological children are assigned a valid skip (-4).) | 0 - 10+ |
+| CV_ENROLLSTAT / CV_ENROLLSTAT_EDT | Enrolled in School?  | 1  = Not enrolled, no high school degree, no GED<br/> 2  = Not enrolled, GED<br/> 3  = Not enrolled, high school degree<br/>4  = Not enrolled, some college<br/> 5  = Not enrolled, 2-YEAR college graduate<br/> 6  = Not enrolled, 4-YEAR college graduate<br/> 7  = Not enrolled, graduate degree<br/> 8  = Enrolled in grades 1-12, not a high school graduate<br/> 9  = Enrolled in a 2-YEAR college<br/> 10 = Enrolled in a 4-YEAR college<br/> 11 = Enrolled in a graduate program |
+| CV_HGC_EVER_EDT | Highest ever enrollment  | 0 = None<br/> 1 = GED<br/> 2 = High school diploma (Regular 12 YEAR program)<br/> 3 = Associate/Junior college (AA)<br/> 4 = Bachelor's degree (BA, BS)<br/> 5 = Master's degree (MA, MS)<br/> 6 = PhD<br/> 7 = Professional degree (DDS, JD, MD) |
+| YCCA-450/YCCAL-450 | AVERAGE HOURS PER WEEK R SPENDS AT WORK, SCHOOL, TRAINING IN PAST 12 MOS (CCA) | 0-999999+ |
+| YCCA-6800 | ANY RELATIVES LIVE WITHIN 15 MINUTES OF CHILD'S HOME | 0 - 1  |
+| YCCA-1100.01 - 05 | PRIMARY CHILD CARE ARRANGEMENT, CHILD 01-05 | 1 = Spousal or Partner Care<br/> 2 = Relative Care<br/> 3 = Sibling Care<br/> 4 = Self-Care<br/>5 = Non-relative Care<br/> 6 = Family Day Care<br/> 7 = Child Care Center<br/> 8 = Formal Schooling |
+| YCCA-1000.01 - 05 | SECONDARY CHILD CARE ARRANGEMENT, CHILD 01-05 | 1 = Spousal or Partner Care<br/> 2 = Relative Care<br/>3 = Sibling Care<br/> 4 = Self-Care<br/> 5 = Non-relative Care<br/> 6 = Family Day Care<br/> 7 = Child Care Center
+8 = Formal Schooling |
+| YCCAL-1100A.0\*~00000& | \* → number of child <br/> \& → Question Number  |  |
+| YCCA-6150.01-05 | Time Unit someone pays for childcare  | 1 = Per Hour<br/> 2 = Per Day<br/> 3 = Per Week |
+| YCCAL-4500.0X.06 | WHO TOOK CHILD 0X TO AND FROM FAMILY DAY CARE |  |
+| YHHI-55701 | WAS R BORN IN U.S., ITS TERRITORIES OR PUERTO RICO |  |
+| YHHI-55704 | WHAT IS R'S CITIZENSHIP STATUS |  |
+| YHHI-55705A | HOW OLD WAS R WHEN FIRST CAME TO U.S. FOR 6 MONTHS OR MORE |  |
+| YCCAL-6900 | # OF RELATIVES LIVE WITHIN 15 MINUTES OF CHILD'S HOME | 0-10 |
+| YCCAL-7100 | ANY RELATIVES W/IN 15 MIN ABLE TO CARE FOR CHILD REGULARLY WITH NO PAYMENT | 0-1 |
+| YCCAL-4500.02.05 | WHO TOOK CHILD 0X TO AND FROM FAMILY DAY CARE  | 1 = Respondent<br/> 2 = Child's father<br/> 3 = Equal split between R and child's father<br/> 4 = Respondent's spouse, partner (who is NOT child's father)<br/> 5 = This relative<br/> 6 = Other (SPECIFY)<br/> 999 = UNCODABLE |
+| YCCAL-7300 | ANY RELATIVES LIVE WITHIN 15-45 MINUTES OF CHILD'S HOME |  |
+| YCCAL-7400 | # OF RELATIVES LIVE WITHIN 15-45 MINUTES OF CHILD'S HOME |  |
+| YCCAL-9100 | # OF RELATIVES W/IN 15 MINS OF R'S HOME, R HAS NO CHILDREN |  |
+| YCCAL-9000 | DOES R HAVE RELATIVE THAT LIVE W/IN 15 MINUTES, R HAS NO CHILDREN |  |
+| YCCAL-9200 | R HAVE RELATIVE W/IN 15 MINS ABLE CARE FOR CHILD REGULARLY, R HAS NO KIDS | 0-1  |
+| YCCAL-9300 | ANY RELATIVES THAT LIVE BETWEEN 15-45 MINUTES OF R'S HOME, R HAS NO KIDS | 0-1 |
+
+Not all of these columns were ultimately used for this project. Of the existent columns, some of the following steps were completed to reformat the data further for use in regression models: 
+
+- Per Steve McKlaskie from the NLS User Services, "in survey years 2005, 2008, 2011, and 2015 (rnds 9, 12, 15 and 17), the YCCAL questions were added and limited to females born in 1983 and 1984. The older females (born 1980, 1981, 1982) go through the YCCA questions. So, in these rounds your will need to look at both YCCA-1100A and YCCAL-1100A, which are limited to children under the age of 7." In order to address this, these will be treated as one variable (RELATIVE_CARE). Similarly, this was done for Spousal and Childcare Center variables. 
+- YCCA-1100A and other such childcare variables are only applicable with non-na responses where mothers have children under 6 years of age, and work or go to school at least 1 hour per week without their children.
+  - To deal with this, I imputed 0 for all na childcare variables and filtered for women with children under 6, income generating work, and in school/work at least part time. 
+- I recoded several variables as binary where it is possible (e.g., Married and Cohabitating vs. not) 
+- I also tried to create a variable combining YINC-1400 and YINC-1700, where I am imputing 0 where YINC-1700 is NA and YINC-1400 is 0 (i.e., situations where both variables are 0)
+- For the current data, I am coding the childcare variables as the case where *any* of the respondent's children are receiving childcare and/or are under 6 years of age. 
+
+```{r Preprocess Data, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+load("~/QMSS/Intergenerational_Childcare_Maternal_Wage_Gap/data/NLSY_new_shortened.RData")
+
+# Step 1. Filter for Women Only  
+NLSY <- NLSY_new_shortened %>% subset(KEY_SEX_1997 == 2)
+
+# Step 2. Reformat data
+NLSY$`YCCAL-1100A~000001` <- pmax(NLSY$`YCCAL-1100A.01~000001`,NLSY$`YCCAL-1100A.02~000001`,NLSY$`YCCAL-1100A.03~000001`,NLSY$`YCCAL-1100A.04~000001`,NLSY$`YCCAL-1100A.05~000002`,  na.rm = TRUE)
+NLSY$`YCCAL-1100A~000002` <- pmax(NLSY$`YCCAL-1100A.01~000002`,NLSY$`YCCAL-1100A.02~000002`,NLSY$`YCCAL-1100A.03~000002`,NLSY$`YCCAL-1100A.04~000002`,NLSY$`YCCAL-1100A.05~000002`,  na.rm = TRUE)
+NLSY$`YCCAL-1100A~000003` <- pmax(NLSY$`YCCAL-1100A.01~000003`,NLSY$`YCCAL-1100A.02~000003`,NLSY$`YCCAL-1100A.03~000003`,NLSY$`YCCAL-1100A.04~000003`,NLSY$`YCCAL-1100A.05~000003`,  na.rm = TRUE)
+NLSY$`YCCAL-1100A~000004` <- pmax(NLSY$`YCCAL-1100A.01~000004`,NLSY$`YCCAL-1100A.02~000004`,NLSY$`YCCAL-1100A.03~000004`,NLSY$`YCCAL-1100A.04~000004`,NLSY$`YCCAL-1100A.05~000004`,  na.rm = TRUE)
+NLSY$`YCCAL-1100A~000005` <- pmax(NLSY$`YCCAL-1100A.01~000005`,NLSY$`YCCAL-1100A.02~000005`,NLSY$`YCCAL-1100A.03~000005`,NLSY$`YCCAL-1100A.04~000005`,NLSY$`YCCAL-1100A.05~000005`,  na.rm = TRUE)
+NLSY$`YCCAL-1100A~000006` <- pmax(NLSY$`YCCAL-1100A.01~000006`,NLSY$`YCCAL-1100A.02~000006`,NLSY$`YCCAL-1100A.03~000006`,NLSY$`YCCAL-1100A.04~000006`,NLSY$`YCCAL-1100A.05~000006`,  na.rm = TRUE)
+NLSY$`YCCAL-1100A~000007` <- pmax(NLSY$`YCCAL-1100A.01~000007`,NLSY$`YCCAL-1100A.02~000007`,NLSY$`YCCAL-1100A.03~000007`,NLSY$`YCCAL-1100A.04~000007`,NLSY$`YCCAL-1100A.05~000007`,  na.rm = TRUE)
+NLSY$`YCCAL-1100A~000008` <- pmax(NLSY$`YCCAL-1100A.01~000008`,NLSY$`YCCAL-1100A.02~000008`,NLSY$`YCCAL-1100A.03~000008`,NLSY$`YCCAL-1100A.04~000008`,NLSY$`YCCAL-1100A.05~000008`,  na.rm = TRUE)
+NLSY$`YCCAL-1100A~000009` <- pmax(NLSY$`YCCAL-1100A.01~000009`,NLSY$`YCCAL-1100A.02~000009`,NLSY$`YCCAL-1100A.03~000009`,NLSY$`YCCAL-1100A.04~000009`,NLSY$`YCCAL-1100A.05~000009`,  na.rm = TRUE)
+
+# Step 3. Filling for 'Missing' Data 
+NLSY_imputed <- NLSY %>% 
+  # 3a. YINC 1400 asks whether the individual generated income at all; thus I am making another variable that imputes the continuous variable YINC 1700 with 0 where 1400 is 0.  
+  dplyr::mutate(INCOME = ifelse((is.na(`YINC-1700`) & (`YINC-1400` == 0)), 0, `YINC-1700`)) %>%
+  # 3b. For number of children in the household, I will fill items with nan in the middle (by person across time); as most nan meant 'does not apply (i.e., no children) I changed this variable to 0.
+  dplyr::arrange(PUBID_1997,YEAR) %>% 
+  dplyr::group_by(PUBID_1997) %>% 
+  #tidyr::fill(PUBID_1997, YEAR,CV_BIO_CHILD_HH,.direction = 'down') %>% 
+  dplyr::mutate(N_CHILDREN = ifelse(is.na(CV_BIO_CHILD_HH),0,CV_BIO_CHILD_HH)) %>% 
+  dplyr::mutate(WORK_EDU_HRS = 
+           ifelse(is.na(`YCCA-450`),`YCCAL-450`,`YCCA-450`)) %>% 
+  dplyr::mutate(Child_1_Born = ) %>% 
+  dplyr::mutate(Child_1_6_YO = ) %>% 
+
+  ungroup() %>% 
+  
+  # 3c. For individuals with children, questions about childcare, intergenerational childcare, and spousal childcare appear to be divided between earlier and later cohorts. 
+  dplyr::mutate(SPOUSAL_CHILDCARE =  
+           ifelse(is.na(`YCCAL-1100A~000001`),ifelse(is.na(`YCCA-1100A~000001`),0,`YCCA-1100A~000001`),`YCCAL-1100A~000001`)) %>% 
+  dplyr::mutate(RELATIVE_CARE =
+           ifelse(is.na(`YCCAL-1100A~000002`),ifelse(is.na(`YCCA-1100A~000002`),0,`YCCA-1100A~000002`),`YCCAL-1100A~000002`)) %>%   
+  dplyr::mutate(SIBLING_CARE =
+           ifelse(is.na(`YCCAL-1100A~000003`),ifelse(is.na(`YCCA-1100A~000003`),0,`YCCA-1100A~000003`),`YCCAL-1100A~000003`)) %>%  
+  dplyr::mutate(SELF_CARE =
+           ifelse(is.na(`YCCAL-1100A~000004`),ifelse(is.na(`YCCA-1100A~000004`),0,`YCCA-1100A~000004`),`YCCAL-1100A~000004`)) %>%   
+  dplyr::mutate(NON_RELATIVE_CARE =
+           ifelse(is.na(`YCCAL-1100A~000005`),ifelse(is.na(`YCCA-1100A~000005`),0,`YCCA-1100A~000005`),`YCCAL-1100A~000005`)) %>%   
+  dplyr::mutate(FAMILY_DAY_CARE =
+           ifelse(is.na(`YCCAL-1100A~000006`),ifelse(is.na(`YCCA-1100A~000006`),0,`YCCA-1100A~000006`),`YCCAL-1100A~000006`)) %>%   
+  dplyr::mutate(CHILDCARE_CENTER = 
+           ifelse(is.na(`YCCAL-1100A~000007`),ifelse(is.na(`YCCA-1100A~000007`),0,`YCCA-1100A~000007`),`YCCAL-1100A~000007`)) %>% 
+  dplyr::mutate(FORMAL_SCHOOL = 
+           ifelse(is.na(`YCCAL-1100A~000008`),ifelse(is.na(`YCCA-1100A~000008`),0,`YCCA-1100A~000008`),`YCCAL-1100A~000008`)) %>% 
+  dplyr::mutate(AFTER_SCHOOL_CARE =
+           ifelse(is.na(`YCCAL-1100A~000009`),ifelse(is.na(`YCCA-1100A~000009`),0,`YCCA-1100A~000009`),`YCCAL-1100A~000009`)) %>% 
+  dplyr::mutate(FAMILY_CARE = pmax(RELATIVE_CARE,SIBLING_CARE,FAMILY_DAY_CARE, na.rm = TRUE)) %>%
+  dplyr::mutate(FORMAL_CHILDCARE = pmax(CHILDCARE_CENTER, FORMAL_SCHOOL,AFTER_SCHOOL_CARE, na.rm = TRUE)) %>%
+  dplyr::mutate(CHILDCARE_TYPE = ifelse(FORMAL_CHILDCARE > 0 & FAMILY_CARE > 0, 'Both', ifelse(FORMAL_CHILDCARE > 0, 'Formal', ifelse(FAMILY_CARE > 0 | NON_RELATIVE_CARE > 0, 'Informal', 'Self/Spouse')))) %>%
+
+  dplyr::mutate(MARRIED_OR_COHABITATING = 
+           ifelse(MAR_STATUS.12_XRND == 2 | MAR_STATUS.12_XRND == 1, 1, 0)) %>% 
+  dplyr::mutate(FULL_TIME = 
+         ifelse(WORK_EDU_HRS>=32,1,ifelse(WORK_EDU_HRS>=0,0,NA))) %>% 
+  dplyr::mutate(PART_TIME = 
+         ifelse(WORK_EDU_HRS>=20,1,ifelse(WORK_EDU_HRS>=0,0,NA))) %>%
+  # 3d. Recoding variables into binary 
+  dplyr::mutate(CV_CITIZENSHIP = 
+         ifelse(CV_CITIZENSHIP == 1, 1, ifelse(CV_CITIZENSHIP == 2, 0, NA))) %>% 
+  dplyr::group_by(PUBID_1997) %>% 
+  dplyr::mutate(CV_CITIZENSHIP = ifelse( !all(is.na(CV_CITIZENSHIP)), max(CV_CITIZENSHIP, na.rm=T), NA)) %>% 
+  dplyr::mutate(KEY_BDATE_Y_1997 = max(KEY_BDATE_Y_1997)) %>% 
+  dplyr::mutate(ANY_CHILDREN = ifelse(N_CHILDREN == 0,0,1)) %>% 
+  dplyr::mutate(BA_ABOVE = ifelse(CV_HGC_EVER_EDT>=16,1,0)) %>% 
+  dplyr::mutate(RELATIVE_CARE_CAT = ifelse(`RELATIVE_CARE`== 0, 'No',ifelse(`RELATIVE_CARE`== 1,'Yes',NA))) %>% 
+  dplyr::mutate(Relative_within_15_minutes = ifelse(`YCCAL-6800`==1, ' - Yes',ifelse(`YCCAL-6800`==0,' - No','NaN')))
+
+#3e. Recode YEAR as numeric 
+NLSY_imputed$YEAR <- as.numeric(NLSY_imputed$YEAR)
+
+#3f. Log Income
+NLSY_imputed$INCOME_LOG <- ifelse(!is.na(NLSY_imputed$INCOME)&NLSY_imputed$INCOME!=0,log(NLSY_imputed$INCOME),0)
+
+# Step 4. Select relevant columns and filter for individuals with valid data about their education, filter for women with some income generating work; filter for High School + 
+NLSY_Valid <- NLSY_imputed %>% subset(YEAR>=2005) %>% 
+  filter(CV_HGC_EVER_EDT != 95 & !is.na(CV_HGC_EVER_EDT)) %>% 
+  filter(CV_HGC_EVER_EDT >= 12)  
+
+# Step 5. Make df that includes working women with valid data about childcare
+NLSY_Valid_Childcare <- NLSY_Valid %>% group_by(PUBID_1997) %>% subset(CV_HH_UNDER_6>0) %>%
+  subset(SELF_CARE==0) 
+
+```
+
+
+```{r Data_Descriptives, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE, font.size=6 }
+dt <- describe(NLSY_Valid)
+dt
+```
+
+```{r N_Children Histogram, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, font.size=6 }
+divisor = nrow(NLSY_Valid)
+N_Children <- as.data.frame(table(NLSY_Valid$N_CHILDREN)) %>% mutate(percentage = Freq/divisor)
+n_child_hist <- N_Children %>% 
+  ggplot(.,aes(x=Var1,y=percentage)) +
+  geom_bar(stat = 'identity',color ="#273237",fill = "#273237" ) +
+  theme_ipsum(base_size = 12, axis_title_size = 14) +
+    theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+        labs(title = '', color = 'Response') +    
+    labs(y="", x = "N_CHILDREN", title = "Number of Children", subtitle = "(NLSY Women with Income Generating Work)")
+n_child_hist
+```
+
+# Intro: Income vs. Number of children
+
+I first performed a well-known model that is backed by literature, confirming the relationship between the presence of children and log wages over time. 
+
+Independent Variable: Number of Children
+Dependent Variable: Income 
+
+```{r Models, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+# Models 
+OLS_0 <- lm(INCOME_LOG ~ N_CHILDREN  + CV_HGC_EVER_EDT + YEAR, NLSY_Valid)
+# summary(OLS_0)
+
+FD_0  <- plm(INCOME_LOG ~ N_CHILDREN + CV_HGC_EVER_EDT, 
+               index = c("PUBID_1997", "YEAR"), 
+               model = "fd", 
+               data = NLSY_Valid) 
+# summary(FD_0)
+
+FE_0  <- plm(INCOME_LOG ~ N_CHILDREN + CV_HGC_EVER_EDT, # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "within", 
+               data = NLSY_Valid) ## this is equivalent to above OLS ##
+# summary(FE_0)
+
+stargazer(OLS_0, FD_0, FE_0,
+          title="Regression Results", 
+          align=TRUE, 
+          dep.var.labels=c("Income"), 
+          no.space=TRUE, 
+          column.labels=c("OLS", "First Diff", "Fixed Effects"), 
+          dep.var.caption="", 
+          model.numbers=FALSE,
+          #type = "latex", 
+          type = "text", 
+          omit = "Constant")
+
+```
+  
+These results make sense as number of children has been shown in previous literature to correspond with lower wages over time. I am unsure as to why the fixed effects model is so extreme, however the adjusted r squared of this model is negative. 
+
+In these cases, I'm not super sure if there is something wrong with the data, or if this is because I did not account for years of experience. 
+
+# Hypotheses 
+
+* *Hypothesis 1*: Working mothers with relatives supporting them in childcare will be more likely to experience lower wage disparities over time compared to working mothers without parents able to support them in childcare.
+* *Hypothesis 2*: Working mothers with relatives in closer proximity will be more likely to experience lower wage disparities over time compared to working mothers without parents able to support them in childcare.
+* *Hypothesis 3*: Comparatively, working mothers with higher levels of education will be less impacted (in terms of wage differential) by their parents’ capacity for support (of time and money). More clearly, it would be hypothesized that mothers with higher levels of education would be more likely to work in highly skilled work, have more financial ability to access paid childcare, and thus would be less influenced by parental support of time or money.
+
+## Basic Models
+The first model I looked at to test Hypothesis 1 only controls for number of children.
+
+Independent Variable: Does a (non-spouse) relative take care of your child
+Dependent Variable: Income (logged)
+Control Variables: Number of Children
+Data Filters: High School + Women with *any* Income-Generating Work post 2005
+
+### First Difference Model 
+```{r FD1, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+FD_1  <- plm(INCOME_LOG ~ FAMILY_CARE + N_CHILDREN, 
+               index = c("PUBID_1997", "YEAR"), 
+               model = "fd", 
+               data = NLSY_Valid) 
+summary(FD_1)
+```
+
+Here, it looks as though family care corresponds with lower levels of income relative to other forms of childcare for income-generating women - there is 10% lower income. 
+
+### Fixed Effects Model
+```{r FE1, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+FE_1  <- plm(INCOME_LOG ~ FAMILY_CARE + N_CHILDREN, # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "within", 
+               data = NLSY_Valid) ## this is equivalent to above OLS ##
+summary(FE_1)
+```
+
+This finding is once more supported by the fixed effects model (even as n_children is corresponding to higher level of income) - without other controls - that family-provided childcare seems to correspond with 10% less income per year, net of number of children; meanwhile, we once more have in the fixed effects model that number of children is having a positive relationship with wages. 
+
+I think this model again is kind of difficult to interpret - we don't include controls for experience and BA+. I will add these in the next few models and will focus on only looking at women with children 6- who work part time. In this way we don't need to count as equal women who are not working at all *(though should I also run a model for this?)*
+
+### Pooled Model
+```{r POOL_1, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+POOL_1 <- plm(INCOME_LOG ~ FAMILY_CARE + N_CHILDREN, # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "pooling", 
+               data = NLSY_Valid) ## this is equivalent to above OLS ##
+summary(POOL_1)
+```
+
+The pooled model makes the most sense to our expectations - number of children corresponds with lower level of income over time; family care does not have a statistically significant impact here.
+
+```{r POOL_1 Factored, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+POOL_1 <- plm(INCOME_LOG ~ as.factor(CHILDCARE_TYPE) + N_CHILDREN, # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "pooling", 
+               data = NLSY_Valid) ## this is equivalent to above OLS ##
+summary(POOL_1)
+```
+However, when exploring more broadly, our findings become more statistically significant. It looks as though here that when we look at childcare types (formal vs informal vs self), informal childcare does not alleviate much of the burden as there is still lower income over time.  
+
+
+**All of these models are relatively meaningless as we are comparing women without children against mothers with children**. I will now add more filters for (1) women with children 6 and under, (2) women working at least part time, and (3) removing a few hundred samples where children are taking care of themselves. 
+
+```{r initial models, eval=FALSE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+stargazer(FD_1, FE_1,POOL_1,
+          title="Regression Results", 
+          align=TRUE, 
+          dep.var.labels=c("Income"), 
+          covariate.labels=c("Relative-Provided Childcare","Number of Children","Year"),  
+          no.space=TRUE, 
+          column.labels=c("First Difference", "Fixed Effects","Pooled"), 
+          dep.var.caption="", 
+          model.numbers=FALSE,
+          #type = "latex", 
+          type = "text", 
+          omit = "Constant")
+```
+
+
+
+## H1: Basic Models (Filtered for only respondents with valid childcare)
+
+Same variables as above, but with filtering to only include respondents with valid childcare responses (note this only includes mothers of children 6 and under)
+
+```{r income vs relative care filtered, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+
+#OLS_1 <- lm(INCOME_LOG ~ RELATIVE_CARE + N_CHILDREN  + YEAR, NLSY_Valid_Childcare)
+#summary(OLS_1)
+
+FD_1  <- plm(INCOME_LOG ~ FAMILY_CARE + N_CHILDREN, 
+               index = c("PUBID_1997", "YEAR"), 
+               model = "fd", 
+               data = NLSY_Valid_Childcare) 
+summary(FD_1)
+
+FE_1  <- plm(INCOME_LOG ~ FAMILY_CARE + N_CHILDREN, # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "within", 
+               data = NLSY_Valid_Childcare) ## this is equivalent to above OLS ##
+#summary(FE_1)
+
+RE_1  <- plm(INCOME_LOG ~ FAMILY_CARE + N_CHILDREN, # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "random", 
+               data = NLSY_Valid_Childcare)
+
+POOL_1 <- plm(INCOME_LOG ~ FAMILY_CARE + N_CHILDREN, # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "pooling", 
+               data = NLSY_Valid_Childcare) ## this is equivalent to above OLS ##
+#summary(POOL)
+stargazer(FD_1, FE_1, RE_1, POOL_1,
+          title="Regression Results", 
+          align=TRUE, 
+          dep.var.labels=c("Income"), 
+          covariate.labels=c("Family-Provided Childcare","Number of Children","Year"),  
+          no.space=TRUE, 
+          column.labels=c("First Difference", "Fixed Effects", "Random Effects", "Pooled"), 
+          dep.var.caption="", 
+          model.numbers=FALSE,
+          #type = "latex", 
+          type = "text", 
+          omit = "Constant")
+
+```
+
+It once more appears here that relative provided childcare amongst women with family-provided childcare for part-time working mothers corresponds with either statistically insignificant (First Difference) or negative relationship with womens' income (logged) net of the number of biological children these women have in general. Note that here, the Fixed Effects and Random Effects models show number of children as having a positive relationship with logged income again...
+
+## H1: Basic Models: Adding the Controls for BA_ABOVE and MARRIED_OR_COHABITATING for logged income vs relative child care
+
+### First Differences
+```{r FD3, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+
+# OLS_3 <- lm(INCOME_LOG ~ `YCCAL-6800` + N_CHILDREN + BA_ABOVE + MARRIED_OR_COHABITATING + YEAR, NLSY_Valid_Childcare)
+# summary(OLS_3)
+
+FD_3 <- plm(INCOME_LOG ~ FAMILY_CARE + BA_ABOVE + MARRIED_OR_COHABITATING+N_CHILDREN, 
+               index = c("PUBID_1997", "YEAR"), 
+               model = "fd", 
+               data = NLSY_Valid_Childcare) 
+summary(FD_3)
+```
+
+```{r FE3, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+
+FE_3  <- plm(INCOME_LOG ~ FAMILY_CARE + BA_ABOVE + MARRIED_OR_COHABITATING+N_CHILDREN, # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "within", 
+               data = NLSY_Valid_Childcare) ## this is equivalent to above OLS ##
+summary(FE_3)
+```
+
+```{r RE3, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+RE_3  <- plm(INCOME_LOG ~ FAMILY_CARE+ BA_ABOVE  + MARRIED_OR_COHABITATING+N_CHILDREN, # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "random", 
+               data = NLSY_Valid_Childcare) ## this is equivalent to above OLS ##
+summary(RE_3)
+```
+
+```{r POOL_3, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+POOL_3 <- plm(INCOME_LOG ~ FAMILY_CARE + BA_ABOVE + MARRIED_OR_COHABITATING+N_CHILDREN, # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "pooling", 
+               data = NLSY_Valid_Childcare) ## this is equivalent to above OLS ##
+summary(POOL_3)
+```
+
+```{r All Models 3, eval=FALSE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+stargazer(FD_3, FE_3, RE_3,POOL_3,
+          title="Regression Results", 
+          align=TRUE, 
+          dep.var.labels=c("Income"), 
+          no.space=TRUE, 
+          column.labels=c("First Diff", "Fixed Effects","Random Effects","Pooled"), 
+          dep.var.caption="", 
+          model.numbers=FALSE,
+          #type = "latex", 
+          type = "text", 
+          omit = "Constant")
+
+```
+
+
+```{r, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+summary(plm(INCOME_LOG ~ FAMILY_CARE,  
+           index = c("PUBID_1997", "YEAR"), 
+           model = "fd", 
+           data = NLSY_Valid_Childcare))
+
+summary(plm(FAMILY_CARE ~ CV_HGC_EVER_EDT,  
+           index = c("PUBID_1997", "YEAR"), 
+           model = "fd", 
+           data = NLSY_Valid_Childcare))
+```
+
+## H1: Logit - Does Family Provided childcare correspond with lower likelihood of full-time work? 
+
+```{r POOL_5, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+summary(
+  glm(PART_TIME ~ FAMILY_CARE + BA_ABOVE + MARRIED_OR_COHABITATING+N_CHILDREN,data =NLSY_Valid_Childcare, family = "binomial") ## this is equivalent to above OLS ##
+        )
+```
+
+## H2: Relative Availability 
+
+These models are more focused on testing Hypothesis 2 which focuses more on the availability of relatives within 15 minutes of the respondent(s).
+
+Note that the filtering for this hypothesis is for people with any children and income generating work. 
+
+### First Difference Model
+```{r FD2, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+NLSY_Valid_Childcare_Relative <- NLSY_Valid %>% 
+  subset(!is.na(Relative_within_15_minutes)) %>% subset(INCOME>0) %>% subset(PART_TIME==1)
+
+# OLS_2 <- lm(INCOME_LOG ~ `YCCAL-6800` + N_CHILDREN  + YEAR, NLSY_Valid_Childcare)
+# summary(OLS_2)
+
+FD_2 <- plm(INCOME_LOG ~ Relative_within_15_minutes + N_CHILDREN, 
+               index = c("PUBID_1997", "YEAR"), 
+               model = "fd", 
+            effect = "individual",
+               data = NLSY_Valid_Childcare_Relative) 
+summary(FD_2)
+```
+
+### Fixed Effects Model
+```{r FE2,, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+FE_2  <- plm(INCOME_LOG ~ Relative_within_15_minutes + N_CHILDREN , # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "within", 
+               data = NLSY_Valid_Childcare_Relative) ## this is equivalent to above OLS ##
+summary(FE_2)
+```
+
+### Random Effects Model
+```{r RE2, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+RE_2  <- plm(INCOME_LOG ~ Relative_within_15_minutes + N_CHILDREN, # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "random", 
+               data = NLSY_Valid_Childcare_Relative) ## this is equivalent to above OLS ##
+summary(RE_2)
+```
+
+### Pooled Model
+```{r POOL2, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+describe(NLSY_Valid_Childcare_Relative$INCOME_LOG)
+POOL_2 <- plm(INCOME_LOG ~ Relative_within_15_minutes + N_CHILDREN, # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "pooling", 
+               data = NLSY_Valid_Childcare_Relative) ## this is equivalent to above OLS ##
+summary(POOL_2)
+```
+The existence of relatives within 15 minutes of working mothers seems to correspond with a 19% lower income over time, even net of number of children overall. 
+
+This could be because people who make less money in general tend to also live closer with their families. 
+
+## H2/H3: N Children vs Relatives within 15 Minutes
+
+This model was to look at whether there is a relationship between the existence of a relative within 15 minutes of the respondent and their fertility overall. 
+
+```{r number of children vs relative nearby filtered, eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE,column.sep.width = "1pt",comment=NA,font.size=8}
+OLS_4 <- lm(N_CHILDREN ~ `Relative_within_15_minutes` + YEAR, NLSY_Valid)
+
+summary(plm(N_CHILDREN ~ Relative_within_15_minutes, # model formula
+               index = c("PUBID_1997", "YEAR"), # id & time variables
+               model = "pooling", 
+               data = NLSY_Valid))
+summary(OLS_4)
+```
+
+It appears that if there is a relative within 15 minutes, there is on average 0.1 more child in the household net of time (statistically significant at p<0.1)
+
+
+
+## Questions
+* I am currently only looking at women who are in income-generating work and have children 6 and under at any given point in time - should i also be comparing at women without children? is it needed to hold more constant any of these variables for an accurate measure?
+  - I'm wondering if I should also be looking at how these same women prior to having children for such models.
+* I scope out children taking care of themselves, and coded spouse childcare as same as 'self' (mother provided) childcare, which corresponds with 0 hours of work/school per week without the child. Should I do this, and what should I do about sibling childcare?
+* Is there something we should be doing to address that people with relative/family care are in different socioeconomic classes as well (i assumed BA/educational attainment is a good proxy - should i include other variables)? 
+* Any other suggestions re: how I filtered data, etc? 
+
+
+## Caveats to my work thus far 
+* I am using a variable for indicating full vs part time as we don't really have the hourly rate data at the moment. (I know this is available on NLSY, but didn't download it thus far). This variable is YCCAL 450 which is asking how many hours mothers are working / studying without the child. I use this to proxy full vs part time (which means that some are misestimated). 
+
+
+---
+[1]Budig, M. J., & England, P. (2001). The Wage Penalty for Motherhood. American Sociological Review, 66(2), 204–225. https://doi.org/10.2307/2657415
